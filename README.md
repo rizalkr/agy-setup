@@ -29,11 +29,31 @@ A portable, token-disciplined configuration for **Google Antigravity (CLI, App, 
 | `data-ai` | `rag-llm-agents-embeddings`, `python-data-ml-scraping`, `reverse-engineering-appsec` |
 | `docs-office` | `office-docs-guidebook-automation` |
 
-## Installation
+## Quick Setup with Agent CLI (Zero Manual Config)
+
+Run `agy` (or any AI coding CLI) on a new machine and paste this single prompt:
+
+```text
+Clone https://github.com/rizalkr/agy-setup.git to ~/Projects/agy-setup (or pull latest if it exists), then read and execute every step in AGENT_SETUP.md to install the full token-optimized setup.
+```
+
+The agent will follow [AGENT_SETUP.md](./AGENT_SETUP.md), run `./install.sh --full` (non-destructive settings merge), build the skill index, and verify all JSON configs automatically.
+
+## Manual Installation
+
+### Full Setup (Skills, Rules + Non-Destructive CLI Settings Merge)
 
 ```bash
-git clone https://github.com/rizalkr/agy-setup.git
-cd agy-setup
+git clone https://github.com/rizalkr/agy-setup.git ~/Projects/agy-setup
+cd ~/Projects/agy-setup
+./install.sh --full
+```
+
+### Minimal Setup (Rules & Skills Only)
+
+```bash
+git clone https://github.com/rizalkr/agy-setup.git ~/Projects/agy-setup
+cd ~/Projects/agy-setup
 ./install.sh
 ```
 
