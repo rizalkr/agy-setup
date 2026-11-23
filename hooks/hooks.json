@@ -1,0 +1,11 @@
+{
+  "context-guardian": {
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "python3 ~/.gemini/config/hooks/context-guardian.py",
+        "timeout": 5
+      }
+    ]
+  }
+}

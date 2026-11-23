@@ -27,14 +27,22 @@ def main() -> None:
     gemini_dir = home_dir / ".gemini"
 
     (repo_dir / "rules").mkdir(parents=True, exist_ok=True)
+    (repo_dir / "hooks").mkdir(parents=True, exist_ok=True)
     shutil.copy2(gemini_dir / "GEMINI.md", repo_dir / "rules/global-GEMINI.md")
     shutil.copy2(home_dir / "GEMINI.md", repo_dir / "rules/workspace-GEMINI.md")
 
     replace_dir_contents(gemini_dir / "config/skills", repo_dir / "core-skills")
     replace_dir_contents(gemini_dir / "skill-library", repo_dir / "skill-library")
 
+    hook_src = gemini_dir / "config/hooks/context-guardian.py"
+    if hook_src.is_file():
+        shutil.copy2(hook_src, repo_dir / "hooks/context-guardian.py")
+    hooks_json_src = gemini_dir / "config/hooks.json"
+    if hooks_json_src.is_file():
+        shutil.copy2(hooks_json_src, repo_dir / "hooks/hooks.json")
+
     subprocess.run([sys.executable, str(repo_dir / "skill-library/rebuild-index.py")], check=True)
-    print(f"Synced rules, core-skills, and skill-library into {repo_dir}.")
+    print(f"Synced rules, hooks, core-skills, and skill-library into {repo_dir}.")
 
 
 if __name__ == "__main__":

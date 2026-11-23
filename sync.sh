@@ -3,10 +3,17 @@ set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-mkdir -p "$REPO_DIR/rules" "$REPO_DIR/core-skills" "$REPO_DIR/skill-library"
+mkdir -p "$REPO_DIR/rules" "$REPO_DIR/hooks" "$REPO_DIR/core-skills" "$REPO_DIR/skill-library"
 
 cp "$HOME/.gemini/GEMINI.md" "$REPO_DIR/rules/global-GEMINI.md"
 cp "$HOME/GEMINI.md" "$REPO_DIR/rules/workspace-GEMINI.md"
+
+if [ -f "$HOME/.gemini/config/hooks/context-guardian.py" ]; then
+  cp "$HOME/.gemini/config/hooks/context-guardian.py" "$REPO_DIR/hooks/context-guardian.py"
+fi
+if [ -f "$HOME/.gemini/config/hooks.json" ]; then
+  cp "$HOME/.gemini/config/hooks.json" "$REPO_DIR/hooks/hooks.json"
+fi
 
 rm -rf "$REPO_DIR/core-skills/"*
 cp -R "$HOME/.gemini/config/skills/"* "$REPO_DIR/core-skills/"
@@ -17,4 +24,4 @@ cp -R "$HOME/.gemini/skill-library/"* "$REPO_DIR/skill-library/"
 python3 "$REPO_DIR/skill-library/rebuild-index.py"
 find "$REPO_DIR" -name "__pycache__" -type d -exec rm -rf {} +
 
-echo "Synced rules, core-skills, and skill-library into $REPO_DIR."
+echo "Synced rules, hooks, core-skills, and skill-library into $REPO_DIR."

@@ -16,6 +16,9 @@ A portable, token-disciplined configuration for **Google Antigravity (CLI, App, 
    - Instead of loading dozens of skill descriptions into every prompt, only `skill-router` (plus 4 core skills) is registered globally in `~/.gemini/config/skills/`.
    - Domain skills live in `~/.gemini/skill-library/<category>/<skill>/SKILL.md`, indexed into `INDEX.md` via `agy-index-skills`.
    - `graphify/SKILL.md` is refactored via Progressive Disclosure (2.2 KB fast-path + `references/full-pipeline.md`).
+5. **Context Guardian (`PreInvocation` Auto-Compact Advisor)**:
+   - Monitors step count since last compaction (`75` Yellow / `120` Red) and real active tokens (`input_tokens + cache_read_tokens`, `85k` Yellow / `135k` Red) via `hooks/context-guardian.py` with cooldown and automatic reset after `/compact`.
+   - Enforces the **Never Compact Mid-Task** rule: advises finishing active fixes first, generates copy-paste `/compact <context + next step>` commands after milestones, and provides New Session Handoff prompts when all tasks finish or context reaches the Red Zone.
 
 ## Skill Library Catalog (18 Skills Across 7 Categories)
 

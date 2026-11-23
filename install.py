@@ -161,6 +161,7 @@ def main() -> None:
 
     for folder in (
         gemini_dir / "config/skills",
+        gemini_dir / "config/hooks",
         gemini_dir / "antigravity",
         gemini_dir / "antigravity-cli",
         gemini_dir / "skill-library",
@@ -173,6 +174,23 @@ def main() -> None:
 
     copy_dir_contents(repo_dir / "core-skills", gemini_dir / "config/skills")
     copy_dir_contents(repo_dir / "skill-library", gemini_dir / "skill-library")
+
+    hook_script = gemini_dir / "config/hooks/context-guardian.py"
+    shutil.copy2(repo_dir / "hooks/context-guardian.py", hook_script)
+    if os.name != "nt":
+        hook_script.chmod(0o755)
+
+    hooks_json_target = gemini_dir / "config/hooks.json"
+    hooks_repo_data = json.loads((repo_dir / "hooks/hooks.json").read_text(encoding="utf-8"))
+    if hooks_json_target.exists():
+        existing_hooks = json.loads(hooks_json_target.read_text(encoding="utf-8"))
+    else:
+        existing_hooks = {}
+    guardian_hook = hooks_repo_data["context-guardian"]
+    if os.name == "nt":
+        guardian_hook["PreInvocation"][0]["command"] = f'"{sys.executable}" "{hook_script}"'
+    existing_hooks["context-guardian"] = guardian_hook
+    hooks_json_target.write_text(json.dumps(existing_hooks, indent=2) + "\n", encoding="utf-8")
 
     ensure_empty_mcp(gemini_dir / "config/mcp_config.json")
     ensure_empty_mcp(gemini_dir / "antigravity/mcp_config.json")

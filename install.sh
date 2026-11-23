@@ -24,6 +24,7 @@ done
 
 mkdir -p \
   "$HOME/.gemini/config/skills" \
+  "$HOME/.gemini/config/hooks" \
   "$HOME/.gemini/antigravity" \
   "$HOME/.gemini/antigravity-cli" \
   "$HOME/.gemini/skill-library" \
@@ -34,6 +35,19 @@ cp "$REPO_DIR/rules/workspace-GEMINI.md" "$HOME/GEMINI.md"
 
 cp -R "$REPO_DIR/core-skills/"* "$HOME/.gemini/config/skills/"
 cp -R "$REPO_DIR/skill-library/"* "$HOME/.gemini/skill-library/"
+cp "$REPO_DIR/hooks/context-guardian.py" "$HOME/.gemini/config/hooks/context-guardian.py"
+chmod +x "$HOME/.gemini/config/hooks/context-guardian.py"
+
+python3 - "$REPO_DIR" "$HOME" <<'PYHOOK'
+import json, sys
+from pathlib import Path
+repo_dir, home_dir = Path(sys.argv[1]), Path(sys.argv[2])
+target = home_dir / ".gemini/config/hooks.json"
+src = json.loads((repo_dir / "hooks/hooks.json").read_text(encoding="utf-8"))
+data = json.loads(target.read_text(encoding="utf-8")) if target.exists() else {}
+data["context-guardian"] = src["context-guardian"]
+target.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+PYHOOK
 
 chmod +x "$HOME/.gemini/skill-library/rebuild-index.py"
 ln -sf "$HOME/.gemini/skill-library/rebuild-index.py" "$HOME/.local/bin/agy-index-skills"

@@ -33,6 +33,7 @@ if (Test-Path (Join-Path $Target ".git")) {
 
 Running the full installer will:
 - Install global rules (`~/.gemini/GEMINI.md`) and workspace graphify rule (`~/GEMINI.md`).
+- Install Context Guardian (`~/.gemini/config/hooks.json` + `~/.gemini/config/hooks/context-guardian.py`) for automatic Green/Yellow/Red context zone monitoring and `/compact` recommendations.
 - Install `core-skills` (`skill-router`, `graphify` fast-path, `find-skills`, `read-only-agent`, `security-audit`) into `~/.gemini/config/skills/`.
 - Install the 18 categorized domain skills into `~/.gemini/skill-library/` and register `agy-index-skills` (`~/.local/bin/agy-index-skills` on POSIX, or `.cmd`/`.ps1` wrappers on Windows).
 - Safely merge Orchestrator Mode (`model` + `orchestrator` planner/executor) into `~/.gemini/antigravity-cli/settings.json` while preserving existing `permissions` and `trustedWorkspaces`.
