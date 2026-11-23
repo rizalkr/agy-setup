@@ -1,0 +1,15 @@
+{
+  "agentMode": "accept-edits",
+  "allowNonWorkspaceAccess": false,
+  "artifactReviewPolicy": "always-proceed",
+  "colorScheme": "dark",
+  "model": "Orchestrator (Neon)",
+  "notifications": true,
+  "orchestrator": {
+    "planner": "Gemini 4 Argon (Medium)",
+    "executor": "Gemini 4 Hydrogen (High)"
+  },
+  "toolPermission": "request-review",
+  "useG1Credits": true,
+  "vimInsertFirst": true
+}
