@@ -10,6 +10,41 @@ import sys
 from pathlib import Path
 
 
+CORE_SKILLS = (
+    "find-skills",
+    "graphify",
+    "read-only-agent",
+    "security-audit",
+    "skill-router",
+)
+
+
+def prune_non_core_skills(skills_dir: Path) -> None:
+    """Remove DataCloud auto-injected skills, manifests, and non-core entries from skills_dir."""
+    if not skills_dir.is_dir():
+        return
+    manifest = skills_dir / ".datacloud_skills_manifest"
+    if manifest.is_file():
+        try:
+            manifest_data = json.loads(manifest.read_text(encoding="utf-8"))
+            for name in manifest_data.get("skills", {}):
+                if name not in CORE_SKILLS:
+                    target = skills_dir / name
+                    if target.is_dir() and not target.is_symlink():
+                        shutil.rmtree(target)
+                    elif target.exists() or target.is_symlink():
+                        target.unlink()
+        except (OSError, json.JSONDecodeError):
+            pass
+    for item in skills_dir.iterdir():
+        if item.name in CORE_SKILLS:
+            continue
+        if item.is_dir() and not item.is_symlink():
+            shutil.rmtree(item)
+        else:
+            item.unlink()
+
+
 def copy_dir_contents(src_root: Path, dst_root: Path) -> None:
     """Recursively copy subdirectories and files from src_root into dst_root."""
     dst_root.mkdir(parents=True, exist_ok=True)
@@ -246,6 +281,7 @@ def main() -> None:
     shutil.copy2(repo_dir / "rules/workspace-GEMINI.md", home_dir / "GEMINI.md")
 
     copy_dir_contents(repo_dir / "core-skills", gemini_dir / "config/skills")
+    prune_non_core_skills(gemini_dir / "config/skills")
     copy_dir_contents(repo_dir / "skill-library", gemini_dir / "skill-library")
 
     hook_script = gemini_dir / "config/hooks/context-guardian.py"

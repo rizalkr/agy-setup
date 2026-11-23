@@ -12,7 +12,7 @@ Store downloaded domain skills here organized by category so the global `skill-r
 ├── testing/       # Playwright, Pest, PHPUnit, Jest, Vitest, E2E
 ├── devops/        # Docker, CI/CD, Linux, Nginx, deployment
 ├── data-ai/       # Scraping, ETL, ML, analytics, prompts
-└── docs-office/   # Word, PDF, Excel, technical writing
+└── docs-office/   # Word, PDF, Excel, technical writing, copywriting
 ```
 
 Place each skill inside its category folder as:

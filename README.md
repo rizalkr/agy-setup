@@ -1,6 +1,6 @@
 # Antigravity (AGY) Token-Optimized CLI & IDE Setup
 
-A portable, token-disciplined configuration for **Google Antigravity (CLI, App, and IDE)** across **Windows, macOS, and Linux** featuring configurable Orchestrator Mode presets, pruned MCP tool schemas, Progressive Disclosure skills, Context Guardian auto-compact advisor, and a **Global Skill Router** backed by a categorized **18-skill library**.
+A portable, token-disciplined configuration for **Google Antigravity (CLI, App, and IDE)** across **Windows, macOS, and Linux** featuring configurable Orchestrator Mode presets, pruned MCP tool schemas, Progressive Disclosure skills, Context Guardian auto-compact advisor, and a **Global Skill Router** backed by a categorized **19-skill library**.
 
 ## Setup Presets (Choose Your Token vs. Quality Combo)
 
@@ -25,7 +25,7 @@ Pick the profile that matches your task, model family (**Argon** or **Neon**), a
 3. **Global Rules (`GEMINI.md`)**:
    - Enforces targeted line-range reads (`StartLine`/`EndLine`), batched parallel tool calls, subagent delegation (`research`) for noisy exploration, concise responses, and automatic skill routing.
    - Integrates `graphify` (`~/GEMINI.md`) to query codebase knowledge graphs before raw file reads.
-4. **Global Skill Router + Categorized Skill Library (18 Skills)**:
+4. **Global Skill Router + Categorized Skill Library (19 Skills)**:
    - Only `skill-router` (plus 4 core skills) is registered globally in `~/.gemini/config/skills/`.
    - Domain skills live in `~/.gemini/skill-library/<category>/<skill>/SKILL.md`, indexed into `INDEX.md` via `agy-index-skills`.
    - `graphify/SKILL.md` uses Progressive Disclosure (2.2 KB fast-path + `references/full-pipeline.md`).
@@ -33,7 +33,7 @@ Pick the profile that matches your task, model family (**Argon** or **Neon**), a
    - Monitors step count and active tokens (`input_tokens + cache_read_tokens`) using your selected preset thresholds in `~/.gemini/config/hooks/preset.json`, with cooldown and automatic reset after `/compact`.
    - Enforces **Never Compact Mid-Task**: warns against compacting mid-fix, generates copy-paste `/compact <context + next step>` commands after milestones, and provides New Session Handoff prompts when tasks finish or reach the Red Zone.
 
-## Skill Library Catalog (18 Skills Across 7 Categories)
+## Skill Library Catalog (19 Skills Across 7 Categories)
 
 | Category | Skills |
 | :--- | :--- |
@@ -43,7 +43,7 @@ Pick the profile that matches your task, model family (**Argon** or **Neon**), a
 | `testing` | `playwright-e2e-rbac`, `vitest-rtl-testing`, `laravel-phpunit-tdd` |
 | `devops` | `docker-compose-cicd-cloud` |
 | `data-ai` | `rag-llm-agents-embeddings`, `python-data-ml-scraping`, `reverse-engineering-appsec` |
-| `docs-office` | `office-docs-guidebook-automation` |
+| `docs-office` | `office-docs-guidebook-automation`, `copywriting` |
 
 ## Quick Setup with Agent CLI (Zero Manual Config)
 

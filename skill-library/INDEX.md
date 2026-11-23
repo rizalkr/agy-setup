@@ -1,6 +1,6 @@
 # Skill Library Index
 
-Total indexed skills: 18. Run `agy-index-skills` after adding or updating skills.
+Total indexed skills: 19. Run `agy-index-skills` after adding or updating skills.
 ## backend (3)
 | Skill | Description | Path |
 | :--- | :--- | :--- |
@@ -26,9 +26,10 @@ Total indexed skills: 18. Run `agy-index-skills` after adding or updating skills
 | :--- | :--- | :--- |
 | `docker-compose-cicd-cloud` | Production-grade Dockerfiles, Docker Compose stacks, GitHub Actions CI/CD pipelines, and VPS/cloud reverse-proxy deployment. Use when containerizing Next.js/Python/Laravel apps, configuring compose profiles, or automating CI/CD. | `~/.gemini/skill-library/devops/docker-compose-cicd-cloud/SKILL.md` |
 
-## docs-office (1)
+## docs-office (2)
 | Skill | Description | Path |
 | :--- | :--- | :--- |
+| `copywriting` | Conversion copywriting, anti-AI-slop editing, UX microcopy, landing page messaging, and technical blog/social hooks. Use when writing or refining hero headlines, CTAs, landing pages, product announcements, case studies, documentation intros, or social posts. | `~/.gemini/skill-library/docs-office/copywriting/SKILL.md` |
 | `office-docs-guidebook-automation` | Automated creation of DOCX guidebooks, XLSX spreadsheets, PDF exports via LibreOffice, and deterministic headless Chrome CDP screenshot pipelines. Use when generating user manuals, reports, or visual documentation. | `~/.gemini/skill-library/docs-office/office-docs-guidebook-automation/SKILL.md` |
 
 ## frontend (5)

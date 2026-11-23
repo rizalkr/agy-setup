@@ -5,8 +5,8 @@ description: >-
   ~/.gemini/skill-library/ across categories (backend, frontend, database,
   testing, devops, data-ai, docs-office). Activate this skill or read
   ~/.gemini/skill-library/INDEX.md whenever a task involves framework-specific
-  coding, testing, database work, DevOps, data processing, or document
-  generation.
+  coding, testing, database work, DevOps, data processing, document
+  generation, or copywriting.
 ---
 
 # Global Skill Router
