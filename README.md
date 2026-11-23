@@ -1,6 +1,6 @@
 # Antigravity (AGY) Token-Optimized CLI & IDE Setup
 
-A portable, token-disciplined configuration for **Google Antigravity (CLI, App, and IDE)** featuring Orchestrator Mode (Plan-Execute), pruned MCP tool schemas, Progressive Disclosure skills, and a **Global Skill Router** backed by a categorized **18-skill library**.
+A portable, token-disciplined configuration for **Google Antigravity (CLI, App, and IDE)** across **Windows, macOS, and Linux** featuring Orchestrator Mode (Plan-Execute), pruned MCP tool schemas, Progressive Disclosure skills, and a **Global Skill Router** backed by a categorized **18-skill library**.
 
 ## Architecture Highlights
 
@@ -31,36 +31,55 @@ A portable, token-disciplined configuration for **Google Antigravity (CLI, App, 
 
 ## Quick Setup with Agent CLI (Zero Manual Config)
 
-Run `agy` (or any AI coding CLI) on a new machine and paste this single prompt:
+Run `agy` (or any AI coding CLI) on a new machine (Windows, macOS, or Linux) and paste this single prompt:
 
 ```text
 Clone https://github.com/rizalkr/agy-setup.git to ~/Projects/agy-setup (or pull latest if it exists), then read and execute every step in AGENT_SETUP.md to install the full token-optimized setup.
 ```
 
-The agent will follow [AGENT_SETUP.md](./AGENT_SETUP.md), run `./install.sh --full` (non-destructive settings merge), build the skill index, and verify all JSON configs automatically.
+The agent will follow [AGENT_SETUP.md](./AGENT_SETUP.md), run the cross-platform installer (`--full`), build the skill index, and verify all JSON configs automatically.
 
 ## Manual Installation
 
-### Full Setup (Skills, Rules + Non-Destructive CLI Settings Merge)
+### Linux / macOS (Bash/Zsh)
 
+Full setup (rules, skills + non-destructive CLI settings merge):
 ```bash
 git clone https://github.com/rizalkr/agy-setup.git ~/Projects/agy-setup
 cd ~/Projects/agy-setup
 ./install.sh --full
 ```
 
-### Minimal Setup (Rules & Skills Only)
-
+Minimal setup (rules & skills only):
 ```bash
-git clone https://github.com/rizalkr/agy-setup.git ~/Projects/agy-setup
-cd ~/Projects/agy-setup
 ./install.sh
 ```
 
 Ensure `~/.local/bin` is in your `PATH` so `agy-index-skills` works globally.
 
+### Windows (PowerShell)
+
+Requires Python 3 (`py` or `python`) installed on PATH.
+
+Full setup (rules, skills, `.cmd`/`.ps1` `agy-index-skills` wrappers, User PATH update + non-destructive CLI settings merge):
+```powershell
+git clone https://github.com/rizalkr/agy-setup.git "$env:USERPROFILE\Projects\agy-setup"
+cd "$env:USERPROFILE\Projects\agy-setup"
+powershell -ExecutionPolicy Bypass -File .\install.ps1 --full
+```
+
+Minimal setup (rules & skills only):
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install.ps1
+```
+
+Or cross-platform directly via Python on any OS:
+```bash
+python3 install.py --full   # or: py -3 install.py --full
+```
+
 ### Optional Settings & Templates
-Review and merge the sanitized templates under `settings/` manually if setting up a fresh machine:
+Review and merge the sanitized templates under `settings/` manually if needed:
 - `settings/cli-settings.example.json` -> `~/.gemini/antigravity-cli/settings.json`
 - `settings/hooks-settings.example.json` -> `~/.gemini/settings.json`
 - `settings/mcp_templates.example.json` -> copy individual servers into `<project>/.agents/mcp_config.json`
@@ -73,7 +92,11 @@ Review and merge the sanitized templates under `settings/` manually if setting u
    agy-index-skills
    ```
 3. Sync local changes back into this repository and push:
-   ```bash
-   ./sync.sh
-   git add -A && git commit -m "chore: update skills" && git push
-   ```
+   - Linux / macOS:
+     ```bash
+     ./sync.sh && git add -A && git commit -m "chore: update skills" && git push
+     ```
+   - Windows (PowerShell):
+     ```powershell
+     .\sync.ps1; git add -A; git commit -m "chore: update skills"; git push
+     ```
