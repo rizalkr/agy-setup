@@ -2,15 +2,25 @@
   "aliases": {
     "1": "balanced",
     "2": "ultra-saver",
-    "3": "max-quality"
+    "3": "max-quality",
+    "4": "neon-balanced",
+    "5": "neon-saver",
+    "6": "neon-max",
+    "argon-balanced": "balanced",
+    "argon-saver": "ultra-saver",
+    "argon-max": "max-quality",
+    "neon": "neon-balanced",
+    "neon-ultra-saver": "neon-saver",
+    "neon-max-quality": "neon-max"
   },
   "default": "balanced",
   "presets": {
     "balanced": {
       "id": "1",
-      "label": "Setup 1: Balanced (Recommended)",
-      "description": "Best balance of token conservation and output quality for daily coding.",
-      "model": "Orchestrator (Neon)",
+      "family": "Argon",
+      "label": "Setup 1: Argon Balanced (Recommended)",
+      "description": "Best balance of token conservation and reasoning depth using Argon (Medium) planner + Hydrogen (High) executor.",
+      "model": "Orchestrator (Argon)",
       "orchestrator": {
         "planner": "Gemini 4 Argon (Medium)",
         "executor": "Gemini 4 Hydrogen (High)"
@@ -26,9 +36,10 @@
     },
     "ultra-saver": {
       "id": "2",
-      "label": "Setup 2: Ultra Saver",
-      "description": "Maximum token and credit savings using fast models and early compaction reminders.",
-      "model": "Orchestrator (Neon)",
+      "family": "Argon",
+      "label": "Setup 2: Argon / Hydrogen Ultra Saver",
+      "description": "Maximum token and credit savings using fast Hydrogen models and early compaction reminders.",
+      "model": "Orchestrator (Argon)",
       "orchestrator": {
         "planner": "Gemini 4 Hydrogen (XHigh)",
         "executor": "Gemini 4 Hydrogen (High)"
@@ -44,11 +55,69 @@
     },
     "max-quality": {
       "id": "3",
-      "label": "Setup 3: Max Quality",
-      "description": "Maximum reasoning depth for system architecture, complex refactors, and deep debugging.",
-      "model": "Orchestrator (Neon)",
+      "family": "Argon",
+      "label": "Setup 3: Argon Max Quality",
+      "description": "Maximum Argon reasoning depth for system architecture, complex refactors, and deep debugging.",
+      "model": "Orchestrator (Argon)",
       "orchestrator": {
         "planner": "Gemini 4 Argon (High)",
+        "executor": "Gemini 4 Hydrogen (XHigh)"
+      },
+      "context_guardian": {
+        "yellow_steps": 100,
+        "yellow_tokens": 110000,
+        "yellow_cooldown": 40,
+        "red_steps": 150,
+        "red_tokens": 160000,
+        "red_cooldown": 30
+      }
+    },
+    "neon-balanced": {
+      "id": "4",
+      "family": "Neon",
+      "label": "Setup 4: Neon Balanced",
+      "description": "Balanced Neon orchestration using Gemini 4 Neon (High) planner + Hydrogen (High) executor for daily coding.",
+      "model": "Orchestrator (Neon)",
+      "orchestrator": {
+        "planner": "Gemini 4 Neon (High)",
+        "executor": "Gemini 4 Hydrogen (High)"
+      },
+      "context_guardian": {
+        "yellow_steps": 75,
+        "yellow_tokens": 85000,
+        "yellow_cooldown": 35,
+        "red_steps": 120,
+        "red_tokens": 135000,
+        "red_cooldown": 25
+      }
+    },
+    "neon-saver": {
+      "id": "5",
+      "family": "Neon",
+      "label": "Setup 5: Neon Ultra Saver",
+      "description": "Lightweight Neon planning with Gemini 4 Neon (Medium) planner + Hydrogen (High) executor and tighter compaction thresholds.",
+      "model": "Orchestrator (Neon)",
+      "orchestrator": {
+        "planner": "Gemini 4 Neon (Medium)",
+        "executor": "Gemini 4 Hydrogen (High)"
+      },
+      "context_guardian": {
+        "yellow_steps": 55,
+        "yellow_tokens": 65000,
+        "yellow_cooldown": 25,
+        "red_steps": 90,
+        "red_tokens": 100000,
+        "red_cooldown": 20
+      }
+    },
+    "neon-max": {
+      "id": "6",
+      "family": "Neon",
+      "label": "Setup 6: Neon Max Quality",
+      "description": "Peak Neon reasoning depth using Gemini 4 Neon (XHigh) planner + Hydrogen (XHigh) executor for complex architecture.",
+      "model": "Orchestrator (Neon)",
+      "orchestrator": {
+        "planner": "Gemini 4 Neon (XHigh)",
         "executor": "Gemini 4 Hydrogen (XHigh)"
       },
       "context_guardian": {

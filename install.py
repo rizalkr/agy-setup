@@ -74,9 +74,14 @@ def resolve_preset(presets_cfg: dict, raw_choice: str | None, interactive: bool)
 
     if interactive:
         print("\nSelect Antigravity Token & Quality Preset:")
-        ordered_keys = ["balanced", "ultra-saver", "max-quality"]
+        ordered_keys = sorted(presets.keys(), key=lambda k: int(presets[k]["id"]))
+        current_family = None
         for key in ordered_keys:
             item = presets[key]
+            family = item.get("family")
+            if family and family != current_family:
+                current_family = family
+                print(f"\n  --- {family} Series ---")
             orch = item["orchestrator"]
             cg = item["context_guardian"]
             print(
@@ -85,7 +90,7 @@ def resolve_preset(presets_cfg: dict, raw_choice: str | None, interactive: bool)
                 f"      Compact zones: Yellow {cg['yellow_steps']} steps / Red {cg['red_steps']} steps\n"
                 f"      {item['description']}"
             )
-        choice = input("Enter choice [1/2/3] (default 1): ").strip().lower() or "1"
+        choice = input("\nEnter choice [1-6 or preset name] (default 1): ").strip().lower() or "1"
         raw_choice = choice
 
     if not raw_choice:
@@ -198,12 +203,16 @@ def main() -> None:
         "--preset",
         type=str,
         default=None,
-        help="Preset profile: 1/balanced (default), 2/ultra-saver, or 3/max-quality. Implies --full.",
+        help=(
+            "Preset profile: 1/balanced (Argon Balanced, default), 2/ultra-saver "
+            "(Argon Saver), 3/max-quality (Argon Max), 4/neon-balanced, 5/neon-saver, "
+            "or 6/neon-max. Implies --full."
+        ),
     )
     parser.add_argument(
         "--choose",
         action="store_true",
-        help="Interactively choose a preset profile (1, 2, or 3). Implies --full.",
+        help="Interactively choose a preset profile (1-6: Argon or Neon series). Implies --full.",
     )
     parser.add_argument(
         "--with-hooks",

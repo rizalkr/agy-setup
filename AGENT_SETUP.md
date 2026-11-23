@@ -4,15 +4,18 @@ This file is written for an AI Agent CLI (`agy`, Gemini CLI, Claude Code, Codex,
 
 ## Step 0: Select Setup Preset
 
-Check whether the user already specified a preset in their prompt (`1`/`balanced`, `2`/`ultra-saver`, or `3`/`max-quality`):
+Check whether the user already specified a preset in their prompt (`1`–`3` Argon series or `4`–`6` Neon series):
 
-| Preset | Planner | Executor | Context Guardian (Yellow / Red) |
-| :--- | :--- | :--- | :--- |
-| `1` / `balanced` (**Recommended**) | `Gemini 4 Argon (Medium)` | `Gemini 4 Hydrogen (High)` | `75 / 120` steps (`85k / 135k` tokens) |
-| `2` / `ultra-saver` | `Gemini 4 Hydrogen (XHigh)` | `Gemini 4 Hydrogen (High)` | `50 / 85` steps (`60k / 95k` tokens) |
-| `3` / `max-quality` | `Gemini 4 Argon (High)` | `Gemini 4 Hydrogen (XHigh)` | `100 / 150` steps (`110k / 160k` tokens) |
+| Series | Preset / Aliases | Planner | Executor | Context Guardian (Yellow / Red) |
+| :--- | :--- | :--- | :--- | :--- |
+| **Argon** | `1` / `balanced` / `argon-balanced` (**Recommended**) | `Gemini 4 Argon (Medium)` | `Gemini 4 Hydrogen (High)` | `75 / 120` steps (`85k / 135k` tokens) |
+| **Argon** | `2` / `ultra-saver` / `argon-saver` | `Gemini 4 Hydrogen (XHigh)` | `Gemini 4 Hydrogen (High)` | `50 / 85` steps (`60k / 95k` tokens) |
+| **Argon** | `3` / `max-quality` / `argon-max` | `Gemini 4 Argon (High)` | `Gemini 4 Hydrogen (XHigh)` | `100 / 150` steps (`110k / 160k` tokens) |
+| **Neon** | `4` / `neon-balanced` / `neon` | `Gemini 4 Neon (High)` | `Gemini 4 Hydrogen (High)` | `75 / 120` steps (`85k / 135k` tokens) |
+| **Neon** | `5` / `neon-saver` / `neon-ultra-saver` | `Gemini 4 Neon (Medium)` | `Gemini 4 Hydrogen (High)` | `55 / 90` steps (`65k / 100k` tokens) |
+| **Neon** | `6` / `neon-max` / `neon-max-quality` | `Gemini 4 Neon (XHigh)` | `Gemini 4 Hydrogen (XHigh)` | `100 / 150` steps (`110k / 160k` tokens) |
 
-- If the user did **not** specify a preset and interactive questions are available, ask them to choose between Setup 1 (`balanced` — Recommended), Setup 2 (`ultra-saver`), or Setup 3 (`max-quality`) before running Step 2.
+- If the user did **not** specify a preset and interactive questions are available, ask them to choose between Argon Series (`1` `balanced` — Recommended, `2` `ultra-saver`, `3` `max-quality`) or Neon Series (`4` `neon-balanced`, `5` `neon-saver`, `6` `neon-max`) before running Step 2.
 - If running strictly headless/non-interactive without user input, default to `--preset balanced`.
 
 ## Execution Steps
@@ -42,7 +45,7 @@ if (Test-Path (Join-Path $Target ".git")) {
 }
 ```
 
-### Step 2: Run Installer with Chosen Preset (`<PRESET>` = `balanced` | `ultra-saver` | `max-quality`)
+### Step 2: Run Installer with Chosen Preset (`<PRESET>` = `balanced` | `ultra-saver` | `max-quality` | `neon-balanced` | `neon-saver` | `neon-max`)
 
 Running with `--preset <PRESET>` will:
 - Install global rules (`~/.gemini/GEMINI.md`) and workspace graphify rule (`~/GEMINI.md`).
@@ -119,6 +122,6 @@ Get-ChildItem -Name "$env:USERPROFILE\.gemini\config\skills"
 ### Step 5: Report to User
 
 Report back concisely with:
-1. Active preset installed (`balanced`, `ultra-saver`, or `max-quality`) and its Planner/Executor model combo.
+1. Active preset installed (`balanced`, `ultra-saver`, `max-quality`, `neon-balanced`, `neon-saver`, or `neon-max`) and its Planner/Executor model combo.
 2. Output of `INDEX.md` skill count and JSON validation checks.
 3. Reminder that project-specific MCP servers (such as Supabase) should be placed in `<project>/.agents/mcp_config.json` using `settings/mcp_templates.example.json` as a reference.
