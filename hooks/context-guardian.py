@@ -6,17 +6,38 @@ import sys
 import time
 from pathlib import Path
 
-YELLOW_STEPS = 75
-YELLOW_COOLDOWN = 35
-YELLOW_TOKENS = 85_000
-
-RED_STEPS = 120
-RED_COOLDOWN = 25
-RED_TOKENS = 135_000
+DEFAULT_THRESHOLDS = {
+    "preset": "balanced",
+    "yellow_steps": 75,
+    "yellow_cooldown": 35,
+    "yellow_tokens": 85_000,
+    "red_steps": 120,
+    "red_cooldown": 25,
+    "red_tokens": 135_000,
+}
 
 MIN_PEAK_FOR_COMPACT_DROP = 40_000
 COMPACT_DROP_RATIO = 0.75
 MAX_STATE_ENTRIES = 50
+
+
+def load_thresholds(home_dir: Path) -> dict:
+    """Load active preset thresholds from ~/.gemini/config/hooks/preset.json."""
+    thresholds = dict(DEFAULT_THRESHOLDS)
+    preset_path = home_dir / ".gemini/config/hooks/preset.json"
+    if not preset_path.is_file():
+        return thresholds
+    try:
+        data = json.loads(preset_path.read_text(encoding="utf-8"))
+        if isinstance(data, dict):
+            for key in DEFAULT_THRESHOLDS:
+                if key in data and (
+                    isinstance(data[key], int) or (key == "preset" and isinstance(data[key], str))
+                ):
+                    thresholds[key] = data[key]
+    except Exception:
+        pass
+    return thresholds
 
 
 def resolve_transcript(payload: dict, home_dir: Path) -> Path | None:
@@ -130,11 +151,17 @@ def save_state(state_path: Path, state: dict) -> None:
     state_path.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
 
 
-def evaluate_zone(steps_since_compact: int, latest_tokens: int) -> str:
+def evaluate_zone(steps_since_compact: int, latest_tokens: int, thresholds: dict) -> str:
     """Determine GREEN, YELLOW, or RED zone."""
-    if steps_since_compact >= RED_STEPS or latest_tokens >= RED_TOKENS:
+    if (
+        steps_since_compact >= thresholds["red_steps"]
+        or latest_tokens >= thresholds["red_tokens"]
+    ):
         return "RED"
-    if steps_since_compact >= YELLOW_STEPS or latest_tokens >= YELLOW_TOKENS:
+    if (
+        steps_since_compact >= thresholds["yellow_steps"]
+        or latest_tokens >= thresholds["yellow_tokens"]
+    ):
         return "YELLOW"
     return "GREEN"
 
@@ -144,6 +171,7 @@ def should_notify(
     total_steps: int,
     last_compact_step: int,
     conv_state: dict | None,
+    thresholds: dict,
 ) -> bool:
     """Apply cooldown and zone-escalation rules."""
     if zone == "GREEN":
@@ -160,7 +188,7 @@ def should_notify(
         return True
 
     last_warn_step = conv_state.get("last_warn_step", 0)
-    cooldown = RED_COOLDOWN if zone == "RED" else YELLOW_COOLDOWN
+    cooldown = thresholds["red_cooldown"] if zone == "RED" else thresholds["yellow_cooldown"]
     return (total_steps - last_warn_step) >= cooldown
 
 
@@ -171,6 +199,7 @@ def run_guardian() -> dict:
         return {}
 
     home_dir = Path.home()
+    thresholds = load_thresholds(home_dir)
     fallback_steps = payload.get("initialNumSteps")
     if not isinstance(fallback_steps, int):
         fallback_steps = 0
@@ -180,7 +209,7 @@ def run_guardian() -> dict:
         transcript_path, fallback_steps
     )
     steps_since_compact = max(0, total_steps - last_compact_step)
-    zone = evaluate_zone(steps_since_compact, latest_tokens)
+    zone = evaluate_zone(steps_since_compact, latest_tokens, thresholds)
 
     if zone == "GREEN":
         return {}
@@ -190,7 +219,7 @@ def run_guardian() -> dict:
     all_state = load_state(state_path)
     conv_state = all_state.get(conv_id)
 
-    if not should_notify(zone, total_steps, last_compact_step, conv_state):
+    if not should_notify(zone, total_steps, last_compact_step, conv_state, thresholds):
         return {}
 
     all_state[conv_id] = {
@@ -201,23 +230,25 @@ def run_guardian() -> dict:
     }
     save_state(state_path, all_state)
 
+    preset_name = thresholds["preset"]
     token_label = f"~{round(latest_tokens / 1000)}k" if latest_tokens > 0 else "unknown"
     if zone == "YELLOW":
         msg = (
-            f"[CONTEXT_GUARDIAN: ZONA KUNING | {steps_since_compact} steps since last compact "
-            f"| {token_label} active tokens] Follow the Context Compaction & Session Handoff "
-            "Pakem in GEMINI.md: do NOT recommend /compact if a bug fix or multi-step edit "
-            "is still unfinished; if a milestone just completed or all tasks are done, append "
-            "the Zona Kuning recommendation block at the end of your response."
+            f"[CONTEXT_GUARDIAN: ZONA KUNING | preset={preset_name} | "
+            f"{steps_since_compact} steps since last compact | {token_label} active tokens] "
+            "Follow the Context Compaction & Session Handoff Pakem in GEMINI.md: do NOT "
+            "recommend /compact if a bug fix or multi-step edit is still unfinished; if a "
+            "milestone just completed or all tasks are done, append the Zona Kuning "
+            "recommendation block at the end of your response."
         )
     else:
         msg = (
-            f"[CONTEXT_GUARDIAN: ZONA MERAH | {steps_since_compact} steps since last compact "
-            f"| {token_label} active tokens] Follow the Context Compaction & Session Handoff "
-            "Pakem in GEMINI.md: append the Zona Merah warning block at the end of your "
-            "response with a ready-to-copy '/compact <context + next step>' command (if tasks "
-            "remain) or a '/clear' + New Session Handoff Prompt (if all tasks are complete or "
-            "switching topics)."
+            f"[CONTEXT_GUARDIAN: ZONA MERAH | preset={preset_name} | "
+            f"{steps_since_compact} steps since last compact | {token_label} active tokens] "
+            "Follow the Context Compaction & Session Handoff Pakem in GEMINI.md: append the "
+            "Zona Merah warning block at the end of your response with a ready-to-copy "
+            "'/compact <context + next step>' command (if tasks remain) or a '/clear' + "
+            "New Session Handoff Prompt (if all tasks are complete or switching topics)."
         )
 
     return {"injectSteps": [{"systemMessage": {"systemMessage": msg}}]}

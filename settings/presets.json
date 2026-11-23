@@ -1,0 +1,64 @@
+{
+  "aliases": {
+    "1": "balanced",
+    "2": "ultra-saver",
+    "3": "max-quality"
+  },
+  "default": "balanced",
+  "presets": {
+    "balanced": {
+      "id": "1",
+      "label": "Setup 1: Balanced (Recommended)",
+      "description": "Best balance of token conservation and output quality for daily coding.",
+      "model": "Orchestrator (Neon)",
+      "orchestrator": {
+        "planner": "Gemini 4 Argon (Medium)",
+        "executor": "Gemini 4 Hydrogen (High)"
+      },
+      "context_guardian": {
+        "yellow_steps": 75,
+        "yellow_tokens": 85000,
+        "yellow_cooldown": 35,
+        "red_steps": 120,
+        "red_tokens": 135000,
+        "red_cooldown": 25
+      }
+    },
+    "ultra-saver": {
+      "id": "2",
+      "label": "Setup 2: Ultra Saver",
+      "description": "Maximum token and credit savings using fast models and early compaction reminders.",
+      "model": "Orchestrator (Neon)",
+      "orchestrator": {
+        "planner": "Gemini 4 Hydrogen (XHigh)",
+        "executor": "Gemini 4 Hydrogen (High)"
+      },
+      "context_guardian": {
+        "yellow_steps": 50,
+        "yellow_tokens": 60000,
+        "yellow_cooldown": 25,
+        "red_steps": 85,
+        "red_tokens": 95000,
+        "red_cooldown": 20
+      }
+    },
+    "max-quality": {
+      "id": "3",
+      "label": "Setup 3: Max Quality",
+      "description": "Maximum reasoning depth for system architecture, complex refactors, and deep debugging.",
+      "model": "Orchestrator (Neon)",
+      "orchestrator": {
+        "planner": "Gemini 4 Argon (High)",
+        "executor": "Gemini 4 Hydrogen (XHigh)"
+      },
+      "context_guardian": {
+        "yellow_steps": 100,
+        "yellow_tokens": 110000,
+        "yellow_cooldown": 40,
+        "red_steps": 150,
+        "red_tokens": 160000,
+        "red_cooldown": 30
+      }
+    }
+  }
+}

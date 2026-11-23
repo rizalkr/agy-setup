@@ -67,11 +67,54 @@ def find_graphify_binary(home_dir: Path, local_bin: Path) -> str | None:
     return None
 
 
-def apply_settings_merge(repo_dir: Path, home_dir: Path, local_bin: Path, with_hooks: bool) -> None:
-    """Safely merge CLI Orchestrator settings, graphify hooks, and plugin flags."""
+def resolve_preset(presets_cfg: dict, raw_choice: str | None, interactive: bool) -> tuple[str, dict]:
+    """Resolve preset name from CLI argument or interactive prompt."""
+    aliases = presets_cfg.get("aliases", {})
+    presets = presets_cfg["presets"]
+
+    if interactive:
+        print("\nSelect Antigravity Token & Quality Preset:")
+        ordered_keys = ["balanced", "ultra-saver", "max-quality"]
+        for key in ordered_keys:
+            item = presets[key]
+            orch = item["orchestrator"]
+            cg = item["context_guardian"]
+            print(
+                f"  [{item['id']}] {item['label']} ({key})\n"
+                f"      Planner: {orch['planner']} | Executor: {orch['executor']}\n"
+                f"      Compact zones: Yellow {cg['yellow_steps']} steps / Red {cg['red_steps']} steps\n"
+                f"      {item['description']}"
+            )
+        choice = input("Enter choice [1/2/3] (default 1): ").strip().lower() or "1"
+        raw_choice = choice
+
+    if not raw_choice:
+        name = presets_cfg.get("default", "balanced")
+        return name, presets[name]
+
+    normalized = raw_choice.strip().lower()
+    name = aliases.get(normalized, normalized)
+    if name not in presets:
+        valid = ", ".join(list(aliases.keys()) + list(presets.keys()))
+        raise SystemExit(f"Unknown preset '{raw_choice}'. Valid options: {valid}")
+    return name, presets[name]
+
+
+def apply_settings_merge(
+    repo_dir: Path,
+    home_dir: Path,
+    local_bin: Path,
+    with_hooks: bool,
+    preset_name: str,
+    preset_data: dict,
+) -> None:
+    """Safely merge preset Orchestrator settings, hooks, and plugin flags."""
     cli_example = json.loads(
         (repo_dir / "settings/cli-settings.example.json").read_text(encoding="utf-8")
     )
+    cli_example["model"] = preset_data["model"]
+    cli_example["orchestrator"] = preset_data["orchestrator"]
+
     cli_target = home_dir / ".gemini/antigravity-cli/settings.json"
     merge_keys = (
         "model",
@@ -90,6 +133,10 @@ def apply_settings_merge(repo_dir: Path, home_dir: Path, local_bin: Path, with_h
     else:
         cli_data = cli_example
     cli_target.write_text(json.dumps(cli_data, indent=2) + "\n", encoding="utf-8")
+
+    preset_target = home_dir / ".gemini/config/hooks/preset.json"
+    preset_payload = {"preset": preset_name, **preset_data["context_guardian"]}
+    preset_target.write_text(json.dumps(preset_payload, indent=2) + "\n", encoding="utf-8")
 
     graphify_bin = find_graphify_binary(home_dir, local_bin)
     if graphify_bin or with_hooks:
@@ -148,16 +195,33 @@ def main() -> None:
         help="Safely merge Orchestrator CLI settings, hooks, and plugin preferences.",
     )
     parser.add_argument(
+        "--preset",
+        type=str,
+        default=None,
+        help="Preset profile: 1/balanced (default), 2/ultra-saver, or 3/max-quality. Implies --full.",
+    )
+    parser.add_argument(
+        "--choose",
+        action="store_true",
+        help="Interactively choose a preset profile (1, 2, or 3). Implies --full.",
+    )
+    parser.add_argument(
         "--with-hooks",
         action="store_true",
         help="Install graphify BeforeTool hook even if graphify is not on PATH yet.",
     )
     args = parser.parse_args()
 
+    if args.preset is not None or args.choose:
+        args.apply_settings = True
+
     repo_dir = Path(__file__).resolve().parent
     home_dir = Path.home()
     gemini_dir = home_dir / ".gemini"
     local_bin = home_dir / ".local/bin"
+
+    presets_cfg = json.loads((repo_dir / "settings/presets.json").read_text(encoding="utf-8"))
+    preset_name, preset_data = resolve_preset(presets_cfg, args.preset, args.choose)
 
     for folder in (
         gemini_dir / "config/skills",
@@ -182,10 +246,11 @@ def main() -> None:
 
     hooks_json_target = gemini_dir / "config/hooks.json"
     hooks_repo_data = json.loads((repo_dir / "hooks/hooks.json").read_text(encoding="utf-8"))
-    if hooks_json_target.exists():
-        existing_hooks = json.loads(hooks_json_target.read_text(encoding="utf-8"))
-    else:
-        existing_hooks = {}
+    existing_hooks = (
+        json.loads(hooks_json_target.read_text(encoding="utf-8"))
+        if hooks_json_target.exists()
+        else {}
+    )
     guardian_hook = hooks_repo_data["context-guardian"]
     if os.name == "nt":
         guardian_hook["PreInvocation"][0]["command"] = f'"{sys.executable}" "{hook_script}"'
@@ -199,11 +264,16 @@ def main() -> None:
     install_indexer_command(local_bin, rebuild_script)
 
     if args.apply_settings:
-        apply_settings_merge(repo_dir, home_dir, local_bin, args.with_hooks)
+        apply_settings_merge(
+            repo_dir, home_dir, local_bin, args.with_hooks, preset_name, preset_data
+        )
 
     subprocess.run([sys.executable, str(rebuild_script)], check=True)
 
-    print(f"Antigravity setup installed successfully (apply_settings={args.apply_settings}).")
+    print(
+        f"Antigravity setup installed successfully "
+        f"(apply_settings={args.apply_settings}, preset={preset_name})."
+    )
     print(f"Templates remain available in: {repo_dir / 'settings'}")
 
 

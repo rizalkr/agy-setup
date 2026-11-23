@@ -1,10 +1,23 @@
 # Automated Agent CLI Setup Runbook
 
-This file is written for an AI Agent CLI (`agy`, Gemini CLI, Claude Code, Codex, or equivalent) to install and verify this Antigravity token-optimized setup non-interactively on **Windows, macOS, or Linux**.
+This file is written for an AI Agent CLI (`agy`, Gemini CLI, Claude Code, Codex, or equivalent) to install and verify this Antigravity token-optimized setup on **Windows, macOS, or Linux**.
+
+## Step 0: Select Setup Preset
+
+Check whether the user already specified a preset in their prompt (`1`/`balanced`, `2`/`ultra-saver`, or `3`/`max-quality`):
+
+| Preset | Planner | Executor | Context Guardian (Yellow / Red) |
+| :--- | :--- | :--- | :--- |
+| `1` / `balanced` (**Recommended**) | `Gemini 4 Argon (Medium)` | `Gemini 4 Hydrogen (High)` | `75 / 120` steps (`85k / 135k` tokens) |
+| `2` / `ultra-saver` | `Gemini 4 Hydrogen (XHigh)` | `Gemini 4 Hydrogen (High)` | `50 / 85` steps (`60k / 95k` tokens) |
+| `3` / `max-quality` | `Gemini 4 Argon (High)` | `Gemini 4 Hydrogen (XHigh)` | `100 / 150` steps (`110k / 160k` tokens) |
+
+- If the user did **not** specify a preset and interactive questions are available, ask them to choose between Setup 1 (`balanced` — Recommended), Setup 2 (`ultra-saver`), or Setup 3 (`max-quality`) before running Step 2.
+- If running strictly headless/non-interactive without user input, default to `--preset balanced`.
 
 ## Execution Steps
 
-Detect the host OS and run the corresponding steps in order without prompting the user unless a command fails:
+Detect the host OS and run the steps below in order:
 
 ### Step 1: Clone or Update Repository
 
@@ -29,25 +42,25 @@ if (Test-Path (Join-Path $Target ".git")) {
 }
 ```
 
-### Step 2: Run Full Non-Destructive Installer
+### Step 2: Run Installer with Chosen Preset (`<PRESET>` = `balanced` | `ultra-saver` | `max-quality`)
 
-Running the full installer will:
+Running with `--preset <PRESET>` will:
 - Install global rules (`~/.gemini/GEMINI.md`) and workspace graphify rule (`~/GEMINI.md`).
-- Install Context Guardian (`~/.gemini/config/hooks.json` + `~/.gemini/config/hooks/context-guardian.py`) for automatic Green/Yellow/Red context zone monitoring and `/compact` recommendations.
+- Install Context Guardian (`~/.gemini/config/hooks.json`, `context-guardian.py`, and `preset.json`) configured for `<PRESET>`.
 - Install `core-skills` (`skill-router`, `graphify` fast-path, `find-skills`, `read-only-agent`, `security-audit`) into `~/.gemini/config/skills/`.
-- Install the 18 categorized domain skills into `~/.gemini/skill-library/` and register `agy-index-skills` (`~/.local/bin/agy-index-skills` on POSIX, or `.cmd`/`.ps1` wrappers on Windows).
-- Safely merge Orchestrator Mode (`model` + `orchestrator` planner/executor) into `~/.gemini/antigravity-cli/settings.json` while preserving existing `permissions` and `trustedWorkspaces`.
+- Install the 18 categorized domain skills into `~/.gemini/skill-library/` and register `agy-index-skills`.
+- Safely merge `<PRESET>`'s Orchestrator model combo into `~/.gemini/antigravity-cli/settings.json` while preserving existing `permissions` and `trustedWorkspaces`.
 - Configure the `graphify` BeforeTool hook if `graphify` is installed, disable `datacloud_telemetry` in `~/.gemini/config/config.json` if present, and remove duplicate legacy skill folders.
 
 **Linux / macOS:**
 ```bash
-cd "$HOME/Projects/agy-setup" && ./install.sh --full
+cd "$HOME/Projects/agy-setup" && ./install.sh --preset <PRESET>
 ```
 
 **Windows (PowerShell):**
 ```powershell
 cd "$env:USERPROFILE\Projects\agy-setup"
-powershell -ExecutionPolicy Bypass -File .\install.ps1 --full
+powershell -ExecutionPolicy Bypass -File .\install.ps1 --preset <PRESET>
 ```
 
 ### Step 3: Ensure `~/.local/bin` Is on PATH (If Missing)
@@ -75,6 +88,8 @@ esac
 "$HOME/.local/bin/agy-index-skills" && \
 for f in \
   "$HOME/.gemini/antigravity-cli/settings.json" \
+  "$HOME/.gemini/config/hooks.json" \
+  "$HOME/.gemini/config/hooks/preset.json" \
   "$HOME/.gemini/config/mcp_config.json" \
   "$HOME/.gemini/antigravity/mcp_config.json"; do
   python3 -m json.tool "$f" >/dev/null && echo "OK: $f"
@@ -89,6 +104,8 @@ ls -1 "$HOME/.gemini/config/skills"
 $Py = if (Get-Command py -ErrorAction SilentlyContinue) { "py -3" } else { "python" }
 foreach ($f in @(
   "$env:USERPROFILE\.gemini\antigravity-cli\settings.json",
+  "$env:USERPROFILE\.gemini\config\hooks.json",
+  "$env:USERPROFILE\.gemini\config\hooks\preset.json",
   "$env:USERPROFILE\.gemini\config\mcp_config.json",
   "$env:USERPROFILE\.gemini\antigravity\mcp_config.json"
 )) {
@@ -102,6 +119,6 @@ Get-ChildItem -Name "$env:USERPROFILE\.gemini\config\skills"
 ### Step 5: Report to User
 
 Report back concisely with:
-1. Confirmation that rules, `skill-router`, 18 categorized skills, and Orchestrator Mode were installed.
+1. Active preset installed (`balanced`, `ultra-saver`, or `max-quality`) and its Planner/Executor model combo.
 2. Output of `INDEX.md` skill count and JSON validation checks.
 3. Reminder that project-specific MCP servers (such as Supabase) should be placed in `<project>/.agents/mcp_config.json` using `settings/mcp_templates.example.json` as a reference.

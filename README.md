@@ -1,11 +1,21 @@
 # Antigravity (AGY) Token-Optimized CLI & IDE Setup
 
-A portable, token-disciplined configuration for **Google Antigravity (CLI, App, and IDE)** across **Windows, macOS, and Linux** featuring Orchestrator Mode (Plan-Execute), pruned MCP tool schemas, Progressive Disclosure skills, and a **Global Skill Router** backed by a categorized **18-skill library**.
+A portable, token-disciplined configuration for **Google Antigravity (CLI, App, and IDE)** across **Windows, macOS, and Linux** featuring configurable Orchestrator Mode presets, pruned MCP tool schemas, Progressive Disclosure skills, Context Guardian auto-compact advisor, and a **Global Skill Router** backed by a categorized **18-skill library**.
+
+## Setup Presets (Choose Your Token vs. Quality Combo)
+
+Pick the profile that matches your task and credit budget (defined in `settings/presets.json`):
+
+| Preset | Flag / Alias | Planner Model | Executor Model | Context Guardian (Yellow / Red) | Best For |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Setup 1: Balanced (Recommended)** | `--preset 1` or `balanced` | `Gemini 4 Argon (Medium)` | `Gemini 4 Hydrogen (High)` | `75 / 120` steps (`85k / 135k` tokens) | Daily full-stack coding: best balance of quality and token efficiency |
+| **Setup 2: Ultra Saver** | `--preset 2` or `ultra-saver` | `Gemini 4 Hydrogen (XHigh)` | `Gemini 4 Hydrogen (High)` | `50 / 85` steps (`60k / 95k` tokens) | Tight token/credit budgets, repetitive edits, quick scripts |
+| **Setup 3: Max Quality** | `--preset 3` or `max-quality` | `Gemini 4 Argon (High)` | `Gemini 4 Hydrogen (XHigh)` | `100 / 150` steps (`110k / 160k` tokens) | Complex system architecture, deep debugging, multi-service refactors |
 
 ## Architecture Highlights
 
 1. **Orchestrator Mode (Plan-Execute)**:
-   - Uses a balanced reasoning model (`Gemini 4 Argon (Medium)`) for planning and a fast execution model (`Gemini 4 Hydrogen (High)`) for implementation, reducing wasted tokens from unguided trial-and-error.
+   - Separates planning and execution models according to your selected preset (`balanced`, `ultra-saver`, or `max-quality`), avoiding wasted tokens from trial-and-error loops.
 2. **Zero Global MCP Context Bloat**:
    - Keeps global `mcp_config.json` empty (`{"mcpServers": {}}`) so unused MCP tool schemas are never injected into every turn.
    - Project-specific MCP servers (such as Supabase) belong inside `<project>/.agents/mcp_config.json` (see `settings/mcp_templates.example.json`).
@@ -13,12 +23,12 @@ A portable, token-disciplined configuration for **Google Antigravity (CLI, App, 
    - Enforces targeted line-range reads (`StartLine`/`EndLine`), batched parallel tool calls, subagent delegation (`research`) for noisy exploration, concise responses, and automatic skill routing.
    - Integrates `graphify` (`~/GEMINI.md`) to query codebase knowledge graphs before raw file reads.
 4. **Global Skill Router + Categorized Skill Library (18 Skills)**:
-   - Instead of loading dozens of skill descriptions into every prompt, only `skill-router` (plus 4 core skills) is registered globally in `~/.gemini/config/skills/`.
+   - Only `skill-router` (plus 4 core skills) is registered globally in `~/.gemini/config/skills/`.
    - Domain skills live in `~/.gemini/skill-library/<category>/<skill>/SKILL.md`, indexed into `INDEX.md` via `agy-index-skills`.
-   - `graphify/SKILL.md` is refactored via Progressive Disclosure (2.2 KB fast-path + `references/full-pipeline.md`).
+   - `graphify/SKILL.md` uses Progressive Disclosure (2.2 KB fast-path + `references/full-pipeline.md`).
 5. **Context Guardian (`PreInvocation` Auto-Compact Advisor)**:
-   - Monitors step count since last compaction (`75` Yellow / `120` Red) and real active tokens (`input_tokens + cache_read_tokens`, `85k` Yellow / `135k` Red) via `hooks/context-guardian.py` with cooldown and automatic reset after `/compact`.
-   - Enforces the **Never Compact Mid-Task** rule: advises finishing active fixes first, generates copy-paste `/compact <context + next step>` commands after milestones, and provides New Session Handoff prompts when all tasks finish or context reaches the Red Zone.
+   - Monitors step count and active tokens (`input_tokens + cache_read_tokens`) using your selected preset thresholds in `~/.gemini/config/hooks/preset.json`, with cooldown and automatic reset after `/compact`.
+   - Enforces **Never Compact Mid-Task**: warns against compacting mid-fix, generates copy-paste `/compact <context + next step>` commands after milestones, and provides New Session Handoff prompts when tasks finish or reach the Red Zone.
 
 ## Skill Library Catalog (18 Skills Across 7 Categories)
 
@@ -34,26 +44,35 @@ A portable, token-disciplined configuration for **Google Antigravity (CLI, App, 
 
 ## Quick Setup with Agent CLI (Zero Manual Config)
 
-Run `agy` (or any AI coding CLI) on a new machine (Windows, macOS, or Linux) and paste this single prompt:
+Run `agy` (or any AI coding CLI) on a new machine (Windows, macOS, or Linux) and paste this single prompt (optionally specify `preset 1`, `2`, or `3`—if omitted, the agent will ask you to choose):
 
 ```text
-Clone https://github.com/rizalkr/agy-setup.git to ~/Projects/agy-setup (or pull latest if it exists), then read and execute every step in AGENT_SETUP.md to install the full token-optimized setup.
+Clone https://github.com/rizalkr/agy-setup.git to ~/Projects/agy-setup (or pull latest if it exists), then read and execute AGENT_SETUP.md to install the setup. Ask me which preset I want (1 Balanced [Recommended], 2 Ultra Saver, or 3 Max Quality) before running the installer.
 ```
 
-The agent will follow [AGENT_SETUP.md](./AGENT_SETUP.md), run the cross-platform installer (`--full`), build the skill index, and verify all JSON configs automatically.
+Or specify your preset directly in one shot:
+
+```text
+Clone https://github.com/rizalkr/agy-setup.git to ~/Projects/agy-setup (or pull latest if it exists), then read and execute AGENT_SETUP.md with preset 1 (balanced).
+```
 
 ## Manual Installation
 
 ### Linux / macOS (Bash/Zsh)
 
-Full setup (rules, skills + non-destructive CLI settings merge):
+Interactive preset menu (choose 1, 2, or 3):
 ```bash
 git clone https://github.com/rizalkr/agy-setup.git ~/Projects/agy-setup
 cd ~/Projects/agy-setup
-./install.sh --full
+./install.sh --choose
 ```
 
-Minimal setup (rules & skills only):
+Or install a specific preset non-interactively (`--full` defaults to Preset 1 `balanced`):
+```bash
+./install.sh --preset 1   # or: --preset balanced | ultra-saver | max-quality
+```
+
+Minimal setup (rules & skills only, without merging CLI settings):
 ```bash
 ./install.sh
 ```
@@ -64,11 +83,16 @@ Ensure `~/.local/bin` is in your `PATH` so `agy-index-skills` works globally.
 
 Requires Python 3 (`py` or `python`) installed on PATH.
 
-Full setup (rules, skills, `.cmd`/`.ps1` `agy-index-skills` wrappers, User PATH update + non-destructive CLI settings merge):
+Interactive preset menu (choose 1, 2, or 3):
 ```powershell
 git clone https://github.com/rizalkr/agy-setup.git "$env:USERPROFILE\Projects\agy-setup"
 cd "$env:USERPROFILE\Projects\agy-setup"
-powershell -ExecutionPolicy Bypass -File .\install.ps1 --full
+powershell -ExecutionPolicy Bypass -File .\install.ps1 --choose
+```
+
+Or install a specific preset directly (`--full` defaults to Preset 1 `balanced`):
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install.ps1 --preset 1
 ```
 
 Minimal setup (rules & skills only):
@@ -76,15 +100,14 @@ Minimal setup (rules & skills only):
 powershell -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-Or cross-platform directly via Python on any OS:
+### Switching Presets Later
+You can switch presets anytime without losing permissions or workspaces:
 ```bash
-python3 install.py --full   # or: py -3 install.py --full
+./install.sh --preset 2      # Linux/macOS
+.\install.ps1 --preset 2     # Windows PowerShell
 ```
 
-### Optional Settings & Templates
-Review and merge the sanitized templates under `settings/` manually if needed:
-- `settings/cli-settings.example.json` -> `~/.gemini/antigravity-cli/settings.json`
-- `settings/hooks-settings.example.json` -> `~/.gemini/settings.json`
+### Optional Templates
 - `settings/mcp_templates.example.json` -> copy individual servers into `<project>/.agents/mcp_config.json`
 
 ## Adding New Skills & Syncing
