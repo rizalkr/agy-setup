@@ -5,10 +5,13 @@ description: Python data engineering, Scikit-Learn ML pipelines (fraud/anomaly d
 
 # Python Data, ML & Scraping
 
-## 1. Pandas & Scikit-Learn Discipline
-- Prefer vectorized NumPy/Pandas operations over `.iterrows()`; validate schema, nulls, and dtypes immediately on ingestion.
+## 1. Pandas, Polars & Scikit-Learn Discipline
+- Prefer vectorized NumPy/Pandas operations over `.iterrows()`; for large tabular datasets (>500 MB), prefer `polars`, `duckdb`, or `pyarrow` + Parquet over CSV/Pandas.
+- Validate schema, nulls, and dtypes immediately on ingestion, and downcast numeric/categorical columns when memory is constrained.
 - Prevent data leakage: fit scalers, encoders, and SMOTE/resamplers strictly inside `sklearn.pipeline.Pipeline` on training folds only (`StratifiedKFold` or time-based splits).
 - For imbalanced tasks (e.g., fraud detection), evaluate with Precision-Recall AUC (`average_precision_score`), F1, and confusion matrices at tuned thresholds rather than raw accuracy.
+
+> For `.ipynb` / Google Colab workflows, load `colab-jupyter-notebooks`. For virtual environments and dependency management, load `python-modern-workflow`.
 
 ## 2. Resilient Web Scraping
 - Reuse `requests.Session()` (or `httpx`) with explicit timeouts, realistic headers, exponential backoff retries on `429`/`5xx`, and polite jittered delays.

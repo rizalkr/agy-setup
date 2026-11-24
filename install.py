@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Cross-platform installer for Antigravity (Windows, macOS, and Linux)."""
 
+from __future__ import annotations
+
 import argparse
 import json
 import os
@@ -106,6 +108,8 @@ def resolve_preset(presets_cfg: dict, raw_choice: str | None, interactive: bool)
     """Resolve preset name from CLI argument or interactive prompt."""
     aliases = presets_cfg.get("aliases", {})
     presets = presets_cfg["presets"]
+    default_name = presets_cfg.get("default", "neon-balanced")
+    default_id = presets[default_name]["id"]
 
     if interactive:
         print("\nSelect Antigravity Token & Quality Preset:")
@@ -125,12 +129,16 @@ def resolve_preset(presets_cfg: dict, raw_choice: str | None, interactive: bool)
                 f"      Compact zones: Yellow {cg['yellow_steps']} steps / Red {cg['red_steps']} steps\n"
                 f"      {item['description']}"
             )
-        choice = input("\nEnter choice [1-6 or preset name] (default 1): ").strip().lower() or "1"
+        choice = (
+            input(f"\nEnter choice [1-{len(ordered_keys)} or preset name] (default {default_id}): ")
+            .strip()
+            .lower()
+            or default_id
+        )
         raw_choice = choice
 
     if not raw_choice:
-        name = presets_cfg.get("default", "balanced")
-        return name, presets[name]
+        return default_name, presets[default_name]
 
     normalized = raw_choice.strip().lower()
     name = aliases.get(normalized, normalized)
@@ -170,6 +178,8 @@ def apply_settings_merge(
         for key in merge_keys:
             if key in cli_example:
                 cli_data[key] = cli_example[key]
+        if "showThinking" in cli_example:
+            cli_data.setdefault("showThinking", cli_example["showThinking"])
     else:
         cli_data = cli_example
     cli_target.write_text(json.dumps(cli_data, indent=2) + "\n", encoding="utf-8")
@@ -239,15 +249,15 @@ def main() -> None:
         type=str,
         default=None,
         help=(
-            "Preset profile: 1/balanced (Argon Balanced, default), 2/ultra-saver "
-            "(Argon Saver), 3/max-quality (Argon Max), 4/neon-balanced, 5/neon-saver, "
-            "or 6/neon-max. Implies --full."
+            "Preset profile: 1/balanced (Argon), 2/ultra-saver (Argon Saver), 3/max-quality "
+            "(Argon Max), 4/neon-balanced (default), 5/neon-saver, 6/neon-max, "
+            "7/carbon-balanced, 8/carbon-saver, or 9/carbon-max. Implies --full."
         ),
     )
     parser.add_argument(
         "--choose",
         action="store_true",
-        help="Interactively choose a preset profile (1-6: Argon or Neon series). Implies --full.",
+        help="Interactively choose a preset profile (1-9: Argon, Neon, or Carbon series). Implies --full.",
     )
     parser.add_argument(
         "--with-hooks",

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Rebuild ~/.gemini/skill-library/INDEX.md from categorized SKILL.md files."""
 
+from __future__ import annotations
+
 from pathlib import Path
 import re
 

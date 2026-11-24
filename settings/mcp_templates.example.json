@@ -9,6 +9,17 @@
       "args": [
         "mcp"
       ]
+    },
+    "jupyter": {
+      "command": "uvx",
+      "args": [
+        "jupyter-mcp-server@latest"
+      ],
+      "env": {
+        "DOCUMENT_URL": "http://localhost:8888",
+        "RUNTIME_URL": "http://localhost:8888",
+        "RUNTIME_TOKEN": "YOUR_JUPYTER_TOKEN"
+      }
     }
   }
 }

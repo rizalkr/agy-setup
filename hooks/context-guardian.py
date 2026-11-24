@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """PreInvocation Context Guardian hook for Antigravity CLI, App, and IDE."""
 
+from __future__ import annotations
+
 import json
 import sys
 import time
 from pathlib import Path
 
 DEFAULT_THRESHOLDS = {
-    "preset": "balanced",
+    "preset": "neon-balanced",
     "yellow_steps": 75,
     "yellow_cooldown": 35,
     "yellow_tokens": 85_000,

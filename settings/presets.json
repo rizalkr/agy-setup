@@ -6,24 +6,30 @@
     "4": "neon-balanced",
     "5": "neon-saver",
     "6": "neon-max",
+    "7": "carbon-balanced",
+    "8": "carbon-saver",
+    "9": "carbon-max",
     "argon-balanced": "balanced",
     "argon-saver": "ultra-saver",
     "argon-max": "max-quality",
     "neon": "neon-balanced",
     "neon-ultra-saver": "neon-saver",
-    "neon-max-quality": "neon-max"
+    "neon-max-quality": "neon-max",
+    "carbon": "carbon-balanced",
+    "carbon-ultra-saver": "carbon-saver",
+    "carbon-max-quality": "carbon-max"
   },
-  "default": "balanced",
+  "default": "neon-balanced",
   "presets": {
     "balanced": {
       "id": "1",
       "family": "Argon",
-      "label": "Setup 1: Argon Balanced (Recommended)",
-      "description": "Best balance of token conservation and reasoning depth using Argon (Medium) planner + Hydrogen (High) executor.",
+      "label": "Setup 1: Argon Balanced",
+      "description": "Balanced Argon orchestration using Argon (Medium) planner + Hydrogen (Medium) executor.",
       "model": "Orchestrator (Argon)",
       "orchestrator": {
         "planner": "Gemini 4 Argon (Medium)",
-        "executor": "Gemini 4 Hydrogen (High)"
+        "executor": "Gemini 4 Hydrogen (Medium)"
       },
       "context_guardian": {
         "yellow_steps": 75,
@@ -38,11 +44,11 @@
       "id": "2",
       "family": "Argon",
       "label": "Setup 2: Argon / Hydrogen Ultra Saver",
-      "description": "Maximum token and credit savings using fast Hydrogen models and early compaction reminders.",
+      "description": "Maximum token and credit savings using Hydrogen (High) planner + Hydrogen (Low) executor and early compaction reminders.",
       "model": "Orchestrator (Argon)",
       "orchestrator": {
-        "planner": "Gemini 4 Hydrogen (XHigh)",
-        "executor": "Gemini 4 Hydrogen (High)"
+        "planner": "Gemini 4 Hydrogen (High)",
+        "executor": "Gemini 4 Hydrogen (Low)"
       },
       "context_guardian": {
         "yellow_steps": 50,
@@ -61,7 +67,7 @@
       "model": "Orchestrator (Argon)",
       "orchestrator": {
         "planner": "Gemini 4 Argon (High)",
-        "executor": "Gemini 4 Hydrogen (XHigh)"
+        "executor": "Gemini 4 Hydrogen (High)"
       },
       "context_guardian": {
         "yellow_steps": 100,
@@ -75,12 +81,12 @@
     "neon-balanced": {
       "id": "4",
       "family": "Neon",
-      "label": "Setup 4: Neon Balanced",
-      "description": "Balanced Neon orchestration using Gemini 4 Neon (High) planner + Hydrogen (High) executor for daily coding.",
+      "label": "Setup 4: Neon Balanced (Recommended)",
+      "description": "Default balanced Neon orchestration using Gemini 4 Neon (High) planner + Hydrogen (Medium) executor for daily coding.",
       "model": "Orchestrator (Neon)",
       "orchestrator": {
         "planner": "Gemini 4 Neon (High)",
-        "executor": "Gemini 4 Hydrogen (High)"
+        "executor": "Gemini 4 Hydrogen (Medium)"
       },
       "context_guardian": {
         "yellow_steps": 75,
@@ -95,11 +101,11 @@
       "id": "5",
       "family": "Neon",
       "label": "Setup 5: Neon Ultra Saver",
-      "description": "Lightweight Neon planning with Gemini 4 Neon (Medium) planner + Hydrogen (High) executor and tighter compaction thresholds.",
+      "description": "Lightweight Neon planning with Gemini 4 Neon (Medium) planner + Hydrogen (Low) executor and tighter compaction thresholds.",
       "model": "Orchestrator (Neon)",
       "orchestrator": {
         "planner": "Gemini 4 Neon (Medium)",
-        "executor": "Gemini 4 Hydrogen (High)"
+        "executor": "Gemini 4 Hydrogen (Low)"
       },
       "context_guardian": {
         "yellow_steps": 55,
@@ -119,6 +125,63 @@
       "orchestrator": {
         "planner": "Gemini 4 Neon (XHigh)",
         "executor": "Gemini 4 Hydrogen (XHigh)"
+      },
+      "context_guardian": {
+        "yellow_steps": 100,
+        "yellow_tokens": 110000,
+        "yellow_cooldown": 40,
+        "red_steps": 150,
+        "red_tokens": 160000,
+        "red_cooldown": 30
+      }
+    },
+    "carbon-balanced": {
+      "id": "7",
+      "family": "Carbon",
+      "label": "Setup 7: Carbon Balanced",
+      "description": "Balanced Carbon orchestration using Gemini 4 Carbon (Medium) planner + Hydrogen (Medium) executor.",
+      "model": "Orchestrator (Carbon)",
+      "orchestrator": {
+        "planner": "Gemini 4 Carbon (Medium)",
+        "executor": "Gemini 4 Hydrogen (Medium)"
+      },
+      "context_guardian": {
+        "yellow_steps": 75,
+        "yellow_tokens": 85000,
+        "yellow_cooldown": 35,
+        "red_steps": 120,
+        "red_tokens": 135000,
+        "red_cooldown": 25
+      }
+    },
+    "carbon-saver": {
+      "id": "8",
+      "family": "Carbon",
+      "label": "Setup 8: Carbon Ultra Saver",
+      "description": "Token-saving Carbon planning with Gemini 4 Carbon (Low) planner + Hydrogen (Low) executor and tighter compaction thresholds.",
+      "model": "Orchestrator (Carbon)",
+      "orchestrator": {
+        "planner": "Gemini 4 Carbon (Low)",
+        "executor": "Gemini 4 Hydrogen (Low)"
+      },
+      "context_guardian": {
+        "yellow_steps": 55,
+        "yellow_tokens": 65000,
+        "yellow_cooldown": 25,
+        "red_steps": 90,
+        "red_tokens": 100000,
+        "red_cooldown": 20
+      }
+    },
+    "carbon-max": {
+      "id": "9",
+      "family": "Carbon",
+      "label": "Setup 9: Carbon Max Quality",
+      "description": "Maximum Carbon reasoning depth using Gemini 4 Carbon (High) planner + Hydrogen (High) executor for complex architecture.",
+      "model": "Orchestrator (Carbon)",
+      "orchestrator": {
+        "planner": "Gemini 4 Carbon (High)",
+        "executor": "Gemini 4 Hydrogen (High)"
       },
       "context_guardian": {
         "yellow_steps": 100,

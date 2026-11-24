@@ -1,6 +1,6 @@
 # Skill Library Index
 
-Total indexed skills: 19. Run `agy-index-skills` after adding or updating skills.
+Total indexed skills: 21. Run `agy-index-skills` after adding or updating skills.
 ## backend (3)
 | Skill | Description | Path |
 | :--- | :--- | :--- |
@@ -8,10 +8,12 @@ Total indexed skills: 19. Run `agy-index-skills` after adding or updating skills
 | `laravel13-specialist` | Architecture, security, and performance patterns for Laravel 13 and PHP 8.3+. Use when writing controllers, Eloquent models, migrations, FormRequests, services, Excel imports/exports, or S3 file workflows in Laravel. | `~/.gemini/skill-library/backend/laravel13-specialist/SKILL.md` |
 | `saas-multitenant-highperf-api` | Design and implementation patterns for multi-tenant SaaS architectures and high-performance backend APIs (RBAC, tenant isolation, idempotency, caching, queues, and microservices). Use when architecting SaaS backends or scaling APIs. | `~/.gemini/skill-library/backend/saas-multitenant-highperf-api/SKILL.md` |
 
-## data-ai (3)
+## data-ai (5)
 | Skill | Description | Path |
 | :--- | :--- | :--- |
+| `colab-jupyter-notebooks` | Google Colab runtime management, Jupyter Notebook performance optimization, and token-safe .ipynb Git hygiene. Use when creating, editing, optimizing, or debugging .ipynb notebooks or Colab workflows. | `~/.gemini/skill-library/data-ai/colab-jupyter-notebooks/SKILL.md` |
 | `python-data-ml-scraping` | Python data engineering, Scikit-Learn ML pipelines (fraud/anomaly detection), resilient web scraping, and PDF-to-Markdown extraction. Use when working with Pandas, Scikit-Learn, scraping scripts, or document extraction tools. | `~/.gemini/skill-library/data-ai/python-data-ml-scraping/SKILL.md` |
+| `python-modern-workflow` | Modern Python virtual environment management, dependency detection (uv/Poetry/.venv), one-line pre-flight probes, ruff linting, pytest, and typing. Use before installing packages, initializing Python projects, or running Python scripts. | `~/.gemini/skill-library/data-ai/python-modern-workflow/SKILL.md` |
 | `rag-llm-agents-embeddings` | Designing RAG pipelines, sentence-transformer embedding services, hybrid vector search, and reliable LLM agent workflows. Use when building AI search, embedding indexers, chunking pipelines, or structured LLM outputs. | `~/.gemini/skill-library/data-ai/rag-llm-agents-embeddings/SKILL.md` |
 | `reverse-engineering-appsec` | Defensive reverse engineering, API/protocol discovery, client bundle inspection, and authorization security verification. Use when analyzing undocumented APIs, inspecting JS/web bundles, or auditing auth/RBAC/IDOR flaws. | `~/.gemini/skill-library/data-ai/reverse-engineering-appsec/SKILL.md` |
 

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Cross-platform sync script to copy ~/.gemini customizations back into this repo."""
 
+from __future__ import annotations
+
 import shutil
 import subprocess
 import sys
