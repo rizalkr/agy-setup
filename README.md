@@ -26,10 +26,10 @@ Pick the profile that matches your task, model family (**Argon**, **Neon**, or *
    - Keeps global `mcp_config.json` empty (`{"mcpServers": {}}`) so unused MCP tool schemas are never injected into every turn.
    - Project-specific MCP servers (such as Supabase, Wordcraft, or Jupyter) belong inside `<project>/.agents/mcp_config.json` (see `settings/mcp_templates.example.json`).
 3. **Global Rules (`GEMINI.md`)**:
-   - Enforces targeted line-range reads (`StartLine`/`EndLine`), batched parallel tool calls, subagent delegation (`research`) for noisy exploration, `.ipynb` raw-read guard (preventing base64/output bloat), concise responses, and automatic skill routing.
+   - Enforces targeted line-range reads (`StartLine`/`EndLine`), batched parallel tool calls, subagent delegation (`research`) for noisy exploration, `.ipynb` raw-read guard (preventing base64/output bloat), concise responses, lean-code guardrails, and automatic skill routing.
    - Integrates `graphify` (`~/GEMINI.md`) to query codebase knowledge graphs before raw file reads.
 4. **Global Skill Router + Categorized Skill Library (21 Skills)**:
-   - Only `skill-router` (plus 4 core skills) is registered globally in `~/.gemini/config/skills/`.
+   - Only `skill-router` (plus 5 core skills: `graphify`, `find-skills`, `lean-code`, `read-only-agent`, `security-audit`) is registered globally in `~/.gemini/config/skills/`.
    - Domain skills live in `~/.gemini/skill-library/<category>/<skill>/SKILL.md`, indexed into `INDEX.md` via `agy-index-skills`.
    - `graphify/SKILL.md` uses Progressive Disclosure (2.2 KB fast-path + `references/full-pipeline.md`).
 5. **Context Guardian (`PreInvocation` Auto-Compact Advisor)**:

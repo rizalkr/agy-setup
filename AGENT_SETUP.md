@@ -53,7 +53,7 @@ if (Test-Path (Join-Path $Target ".git")) {
 Running with `--preset <PRESET>` will:
 - Install global rules (`~/.gemini/GEMINI.md`) and workspace graphify rule (`~/GEMINI.md`).
 - Install Context Guardian (`~/.gemini/config/hooks.json`, `context-guardian.py`, and `preset.json`) configured for `<PRESET>`.
-- Install `core-skills` (`skill-router`, `graphify` fast-path, `find-skills`, `read-only-agent`, `security-audit`) into `~/.gemini/config/skills/`.
+- Install `core-skills` (`skill-router`, `graphify` fast-path, `find-skills`, `lean-code`, `read-only-agent`, `security-audit`) into `~/.gemini/config/skills/`.
 - Install the 21 categorized domain skills into `~/.gemini/skill-library/` and register `agy-index-skills`.
 - Safely merge `<PRESET>`'s Orchestrator model combo into `~/.gemini/antigravity-cli/settings.json` while preserving existing `permissions`, `trustedWorkspaces`, and `showThinking`.
 - Configure the `graphify` BeforeTool hook if `graphify` is installed, disable `datacloud_telemetry` in `~/.gemini/config/config.json` if present, and remove duplicate legacy skill folders.

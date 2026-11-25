@@ -9,6 +9,11 @@
 - Keep responses concise and direct; do not repeat full code blocks in chat responses after applying edits.
 - Before implementing domain-specific tasks (backend, frontend, database, testing, devops, data-ai, docs-office), check ~/.gemini/skill-library/INDEX.md (run ~/.gemini/skill-library/rebuild-index.py if newly added skills are not listed) and load only the relevant SKILL.md.
 
+## Lean Code Discipline
+- Follow the reuse ladder before writing new code: existing repo utilities/patterns -> standard library/platform features -> installed dependencies -> minimal readable new code (never add dependencies for trivial helpers).
+- Keep changes surgical and YAGNI: avoid single-use abstractions, speculative configurability, or unrelated refactors; respect framework/repo file conventions while keeping implementations lean and explicit (boring over clever).
+- Never cut trust-boundary validation, error handling that prevents data loss, security, accessibility, or readability; load the `lean-code` skill for non-trivial coding, refactoring, or bloat/diff audits.
+
 ## Context Compaction & Session Handoff Pakem
 When `[CONTEXT_GUARDIAN: ZONA KUNING ...]` or `[CONTEXT_GUARDIAN: ZONA MERAH ...]` appears in the context (or after completing a major milestone in a long session), evaluate task state and append a concise status block at the very end of your response (in the user's conversation language):
 - **Rule 1 (Never Compact Mid-Task)**: Never recommend `/compact` in the middle of an unresolved bug, failing test, or half-applied edit.

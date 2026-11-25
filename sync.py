@@ -12,6 +12,7 @@ from pathlib import Path
 CORE_SKILLS = (
     "find-skills",
     "graphify",
+    "lean-code",
     "read-only-agent",
     "security-audit",
     "skill-router",
