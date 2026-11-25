@@ -19,6 +19,7 @@ Check whether the user already specified a preset in their prompt (`1`–`3` Arg
 | **Carbon** | `9` / `carbon-max` / `carbon-max-quality` | `Gemini 4 Carbon (High)` | `Gemini 4 Hydrogen (High)` | `100 / 150` steps (`110k / 160k` tokens) |
 
 - If the user did **not** specify a preset and interactive questions are available, ask them to choose between Neon Series (`4` `neon-balanced` — Recommended/Default, `5` `neon-saver`, `6` `neon-max`), Argon Series (`1` `balanced`, `2` `ultra-saver`, `3` `max-quality`), or Carbon Series (`7` `carbon-balanced`, `8` `carbon-saver`, `9` `carbon-max`) before running Step 2.
+- If the user wants to keep their current model/orchestrator unchanged (or uses a different Antigravity model tier), append `--no-orchestrator` to the installer command in Step 2.
 - If running strictly headless/non-interactive without user input, default to `--preset neon-balanced`.
 
 ## Execution Steps
@@ -51,12 +52,12 @@ if (Test-Path (Join-Path $Target ".git")) {
 ### Step 2: Run Installer with Chosen Preset (`<PRESET>` = `balanced` | `ultra-saver` | `max-quality` | `neon-balanced` | `neon-saver` | `neon-max` | `carbon-balanced` | `carbon-saver` | `carbon-max`)
 
 Running with `--preset <PRESET>` will:
-- Install global rules (`~/.gemini/GEMINI.md`) and workspace graphify rule (`~/GEMINI.md`).
+- Back up existing `~/.gemini/GEMINI.md` and `~/GEMINI.md` to `*.bak` (if different) before installing the global rules and conditional `graphify` workspace rule.
 - Install Context Guardian (`~/.gemini/config/hooks.json`, `context-guardian.py`, and `preset.json`) configured for `<PRESET>`.
-- Install `core-skills` (`skill-router`, `graphify` fast-path, `find-skills`, `lean-code`, `read-only-agent`, `security-audit`) into `~/.gemini/config/skills/`.
+- Install `core-skills` (`skill-router`, `graphify` fast-path, `find-skills`, `lean-code`, `read-only-agent`, `security-audit`) into `~/.gemini/config/skills/` while preserving any custom user skills (pass `--prune-skills` only if full non-core cleanup is requested).
 - Install the 21 categorized domain skills into `~/.gemini/skill-library/` and register `agy-index-skills`.
-- Safely merge `<PRESET>`'s Orchestrator model combo into `~/.gemini/antigravity-cli/settings.json` while preserving existing `permissions`, `trustedWorkspaces`, and `showThinking`.
-- Configure the `graphify` BeforeTool hook if `graphify` is installed, disable `datacloud_telemetry` in `~/.gemini/config/config.json` if present, and remove duplicate legacy skill folders.
+- Safely merge `<PRESET>`'s Orchestrator model combo (skipped when `--no-orchestrator` is passed) into `~/.gemini/antigravity-cli/settings.json` while preserving existing `permissions`, `trustedWorkspaces`, and UX preferences (`colorScheme`, `vimInsertFirst`, `agentMode`, `artifactReviewPolicy`, `showThinking`).
+- Merge the `graphify` BeforeTool hook into `~/.gemini/settings.json` if `graphify` is installed, disable `datacloud_telemetry` in `~/.gemini/config/config.json` if present, and remove legacy `~/.gemini/skills/` duplicates without touching `~/.agents/skills/`.
 
 **Linux / macOS:**
 ```bash

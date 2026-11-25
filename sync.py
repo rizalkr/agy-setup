@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 import shutil
 import subprocess
 import sys
@@ -18,18 +19,7 @@ CORE_SKILLS = (
     "skill-router",
 )
 
-
-def prune_non_core_skills(skills_dir: Path) -> None:
-    """Remove auto-injected non-core skills and manifests (e.g. DataCloud) from skills_dir."""
-    if not skills_dir.is_dir():
-        return
-    for item in skills_dir.iterdir():
-        if item.name in CORE_SKILLS:
-            continue
-        if item.is_dir() and not item.is_symlink():
-            shutil.rmtree(item)
-        else:
-            item.unlink()
+PORTABLE_GUARDIAN_CMD = "python3 ~/.gemini/config/hooks/context-guardian.py"
 
 
 def replace_dir_contents(
@@ -52,30 +42,48 @@ def replace_dir_contents(
             shutil.copy2(item, target)
 
 
-def main() -> None:
-    repo_dir = Path(__file__).resolve().parent
-    home_dir = Path.home()
-    gemini_dir = home_dir / ".gemini"
+def sync_hooks_json(hooks_json_src: Path, hooks_json_dst: Path) -> None:
+    """Sync only the context-guardian hook with a portable POSIX command."""
+    if not hooks_json_src.is_file():
+        return
+    data = json.loads(hooks_json_src.read_text(encoding="utf-8"))
+    guardian = data.get("context-guardian")
+    if not isinstance(guardian, dict):
+        return
+    pre_inv = guardian.get("PreInvocation")
+    if isinstance(pre_inv, list) and pre_inv and isinstance(pre_inv[0], dict):
+        pre_inv[0]["command"] = PORTABLE_GUARDIAN_CMD
+    hooks_json_dst.write_text(
+        json.dumps({"context-guardian": guardian}, indent=2) + "\n",
+        encoding="utf-8",
+    )
 
-    (repo_dir / "rules").mkdir(parents=True, exist_ok=True)
-    (repo_dir / "hooks").mkdir(parents=True, exist_ok=True)
-    shutil.copy2(gemini_dir / "GEMINI.md", repo_dir / "rules/global-GEMINI.md")
-    shutil.copy2(home_dir / "GEMINI.md", repo_dir / "rules/workspace-GEMINI.md")
+
+def sync_setup(home_dir: Path | None = None, repo_dir: Path | None = None) -> None:
+    resolved_repo = repo_dir or Path(__file__).resolve().parent
+    resolved_home = home_dir or Path.home()
+    gemini_dir = resolved_home / ".gemini"
+
+    (resolved_repo / "rules").mkdir(parents=True, exist_ok=True)
+    (resolved_repo / "hooks").mkdir(parents=True, exist_ok=True)
+    shutil.copy2(gemini_dir / "GEMINI.md", resolved_repo / "rules/global-GEMINI.md")
+    shutil.copy2(resolved_home / "GEMINI.md", resolved_repo / "rules/workspace-GEMINI.md")
 
     core_skills_src = gemini_dir / "config/skills"
-    prune_non_core_skills(core_skills_src)
-    replace_dir_contents(core_skills_src, repo_dir / "core-skills", only_names=CORE_SKILLS)
-    replace_dir_contents(gemini_dir / "skill-library", repo_dir / "skill-library")
+    replace_dir_contents(core_skills_src, resolved_repo / "core-skills", only_names=CORE_SKILLS)
+    replace_dir_contents(gemini_dir / "skill-library", resolved_repo / "skill-library")
 
     hook_src = gemini_dir / "config/hooks/context-guardian.py"
     if hook_src.is_file():
-        shutil.copy2(hook_src, repo_dir / "hooks/context-guardian.py")
-    hooks_json_src = gemini_dir / "config/hooks.json"
-    if hooks_json_src.is_file():
-        shutil.copy2(hooks_json_src, repo_dir / "hooks/hooks.json")
+        shutil.copy2(hook_src, resolved_repo / "hooks/context-guardian.py")
+    sync_hooks_json(gemini_dir / "config/hooks.json", resolved_repo / "hooks/hooks.json")
 
-    subprocess.run([sys.executable, str(repo_dir / "skill-library/rebuild-index.py")], check=True)
-    print(f"Synced rules, hooks, core-skills, and skill-library into {repo_dir}.")
+    subprocess.run([sys.executable, str(resolved_repo / "skill-library/rebuild-index.py")], check=True)
+    print(f"Synced rules, hooks, core-skills, and skill-library into {resolved_repo}.")
+
+
+def main() -> None:
+    sync_setup()
 
 
 if __name__ == "__main__":

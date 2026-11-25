@@ -31,7 +31,7 @@ Pick the profile that matches your task, model family (**Argon**, **Neon**, or *
 4. **Global Skill Router + Categorized Skill Library (21 Skills)**:
    - Only `skill-router` (plus 5 core skills: `graphify`, `find-skills`, `lean-code`, `read-only-agent`, `security-audit`) is registered globally in `~/.gemini/config/skills/`.
    - Domain skills live in `~/.gemini/skill-library/<category>/<skill>/SKILL.md`, indexed into `INDEX.md` via `agy-index-skills`.
-   - `graphify/SKILL.md` uses Progressive Disclosure (2.2 KB fast-path + `references/full-pipeline.md`).
+   - `graphify/SKILL.md` (~2.2 KB fast-path + `references/full-pipeline.md`) and `security-audit/SKILL.md` (~10 KB guidance fast-path + `FULL-AUDIT-SETUP.md`) use Progressive Disclosure.
 5. **Context Guardian (`PreInvocation` Auto-Compact Advisor)**:
    - Monitors step count and active tokens (`input_tokens + cache_read_tokens`) using your selected preset thresholds in `~/.gemini/config/hooks/preset.json`, with cooldown and automatic reset after `/compact`.
    - Enforces **Never Compact Mid-Task**: warns against compacting mid-fix, generates copy-paste `/compact <context + next step>` commands after milestones, and provides New Session Handoff prompts when tasks finish or reach the Red Zone.
@@ -39,7 +39,9 @@ Pick the profile that matches your task, model family (**Argon**, **Neon**, or *
    - Supports `AGY_CLI_AUTO_COMPACT_OVERRIDE` (e.g., `80%`, `800K`) for CLI-native auto-compaction tuning alongside Context Guardian.
    - Sets `"showThinking": false` by default (toggle live thinking with `/thinking`), and preserves user-global `~/.agents/skills` discovery while keeping `~/.gemini/config/skills/` clean.
 
-## Skill Library Catalog (21 Skills Across 7 Categories)
+## Skill Library Catalog (21 Starter Skills Across 7 Categories)
+
+> This library is an **opinionated starter bundle** tailored around Next.js/React, Tailwind/shadcn, Laravel, FastAPI, Python/ML, and Supabase/Drizzle. Because `skill-router` loads skills on demand from `INDEX.md`, unused skills add zero prompt bloat—and you can freely add or remove category folders and re-run `agy-index-skills`.
 
 | Category | Skills |
 | :--- | :--- |
@@ -83,10 +85,19 @@ Or install a specific preset non-interactively (`--full` defaults to Preset 4 `n
 ./install.sh --preset 7   # Carbon: 7/carbon-balanced | 8/carbon-saver | 9/carbon-max
 ```
 
-Minimal setup (rules & skills only, without merging CLI settings):
+Minimal setup (rules, Context Guardian `preset.json`, & skills only, without merging CLI settings):
 ```bash
 ./install.sh
 ```
+
+### Safe Install Flags & Model Independence
+
+- **Non-destructive by default**: Existing `~/.gemini/GEMINI.md` and `~/GEMINI.md` are backed up to `*.bak` before overwrite, existing UX preferences (`colorScheme`, `vimInsertFirst`, `agentMode`, `artifactReviewPolicy`, `showThinking`) are preserved, and custom skills in `~/.gemini/config/skills/` or `~/.agents/skills/` are left intact (only DataCloud auto-injected bloat is pruned).
+- **Keep your current model (`--no-orchestrator`)**: If your Antigravity version or plan uses different model names—or you simply prefer your current model—pass `--no-orchestrator` alongside `--preset`:
+  ```bash
+  ./install.sh --preset 4 --no-orchestrator
+  ```
+- **Opt-in global skill cleanup (`--prune-skills`)**: Pass `--prune-skills` only if you explicitly want to remove all non-core skills from `~/.gemini/config/skills/`.
 
 Ensure `~/.local/bin` is in your `PATH` so `agy-index-skills` works globally.
 
@@ -122,8 +133,11 @@ You can switch between Argon (`1`–`3`), Neon (`4`–`6`), and Carbon (`7`–`9
 
 ### Optional Templates
 - `settings/mcp_templates.example.json` -> copy individual servers (Supabase, Wordcraft, or Jupyter) into `<project>/.agents/mcp_config.json`
+- `rules/personal.example.md` -> optional personal preferences (e.g., no-emoticons or conversation language rules) you can append to `~/.gemini/GEMINI.md`
 
 ## Adding New Skills & Syncing
+
+> **Tip for other users**: Fork this repository first and clone your own fork if you plan to push personal rule/skill changes with `sync.sh` / `sync.ps1`.
 
 1. Drop any new skill into `~/.gemini/skill-library/<category>/<skill-name>/SKILL.md`.
 2. Refresh the index:

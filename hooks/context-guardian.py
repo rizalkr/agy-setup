@@ -19,7 +19,7 @@ DEFAULT_THRESHOLDS = {
 }
 
 MIN_PEAK_FOR_COMPACT_DROP = 40_000
-COMPACT_DROP_RATIO = 0.75
+COMPACT_DROP_RATIO = 0.55
 MAX_STATE_ENTRIES = 50
 
 
@@ -236,21 +236,21 @@ def run_guardian() -> dict:
     token_label = f"~{round(latest_tokens / 1000)}k" if latest_tokens > 0 else "unknown"
     if zone == "YELLOW":
         msg = (
-            f"[CONTEXT_GUARDIAN: ZONA KUNING | preset={preset_name} | "
+            f"[CONTEXT_GUARDIAN: YELLOW ZONE | preset={preset_name} | "
             f"{steps_since_compact} steps since last compact | {token_label} active tokens] "
-            "Follow the Context Compaction & Session Handoff Pakem in GEMINI.md: do NOT "
-            "recommend /compact if a bug fix or multi-step edit is still unfinished; if a "
-            "milestone just completed or all tasks are done, append the Zona Kuning "
-            "recommendation block at the end of your response."
+            "Follow the Context Compaction & Session Handoff rules in GEMINI.md (in the user's "
+            "conversation language): do NOT recommend /compact if a bug fix or multi-step edit "
+            "is still unfinished; if a milestone just completed or all tasks are done, append "
+            "the Yellow Zone recommendation block at the end of your response."
         )
     else:
         msg = (
-            f"[CONTEXT_GUARDIAN: ZONA MERAH | preset={preset_name} | "
+            f"[CONTEXT_GUARDIAN: RED ZONE | preset={preset_name} | "
             f"{steps_since_compact} steps since last compact | {token_label} active tokens] "
-            "Follow the Context Compaction & Session Handoff Pakem in GEMINI.md: append the "
-            "Zona Merah warning block at the end of your response with a ready-to-copy "
-            "'/compact <context + next step>' command (if tasks remain) or a '/clear' + "
-            "New Session Handoff Prompt (if all tasks are complete or switching topics)."
+            "Follow the Context Compaction & Session Handoff rules in GEMINI.md (in the user's "
+            "conversation language): append the Red Zone warning block at the end of your response "
+            "with a ready-to-copy '/compact <context + next step>' command (if tasks remain) or a "
+            "'/clear' + New Session Handoff Prompt (if all tasks are complete or switching topics)."
         )
 
     return {"injectSteps": [{"systemMessage": {"systemMessage": msg}}]}

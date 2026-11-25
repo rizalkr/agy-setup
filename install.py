@@ -22,16 +22,23 @@ CORE_SKILLS = (
 )
 
 
-def prune_non_core_skills(skills_dir: Path) -> None:
-    """Remove DataCloud auto-injected skills, manifests, and non-core entries from skills_dir."""
+def prune_non_core_skills(skills_dir: Path, prune_all: bool = False) -> None:
+    """Remove DataCloud auto-injected skills, and optionally non-core entries."""
     if not skills_dir.is_dir():
         return
     manifest = skills_dir / ".datacloud_skills_manifest"
     if manifest.is_file():
         try:
             manifest_data = json.loads(manifest.read_text(encoding="utf-8"))
-            for name in manifest_data.get("skills", {}):
-                if name not in CORE_SKILLS:
+            skills = manifest_data.get("skills", {}) if isinstance(manifest_data, dict) else {}
+            if isinstance(skills, (dict, list)):
+                for name in skills:
+                    if (
+                        not isinstance(name, str)
+                        or name in CORE_SKILLS
+                        or Path(name).name != name
+                    ):
+                        continue
                     target = skills_dir / name
                     if target.is_dir() and not target.is_symlink():
                         shutil.rmtree(target)
@@ -39,6 +46,12 @@ def prune_non_core_skills(skills_dir: Path) -> None:
                         target.unlink()
         except (OSError, json.JSONDecodeError):
             pass
+        try:
+            manifest.unlink()
+        except OSError:
+            pass
+    if not prune_all:
+        return
     for item in skills_dir.iterdir():
         if item.name in CORE_SKILLS:
             continue
@@ -46,6 +59,18 @@ def prune_non_core_skills(skills_dir: Path) -> None:
             shutil.rmtree(item)
         else:
             item.unlink()
+
+
+def backup_if_different(src: Path, dst: Path) -> Path | None:
+    """Create a .bak copy of dst before overwriting if its contents differ from src."""
+    if not dst.is_file():
+        return None
+    if dst.read_bytes() == src.read_bytes():
+        return None
+    backup_path = dst.with_name(f"{dst.name}.bak")
+    shutil.copy2(dst, backup_path)
+    print(f"Backed up existing {dst} -> {backup_path}")
+    return backup_path
 
 
 def copy_dir_contents(src_root: Path, dst_root: Path) -> None:
@@ -61,8 +86,11 @@ def copy_dir_contents(src_root: Path, dst_root: Path) -> None:
 
 
 def ensure_empty_mcp(path: Path) -> None:
-    """Create an empty mcpServers config if none exists."""
-    if not path.exists():
+    """Create an empty mcpServers config if missing or empty/whitespace-only."""
+    needs_write = not path.exists()
+    if not needs_write:
+        needs_write = not path.read_text(encoding="utf-8", errors="replace").strip()
+    if needs_write:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps({"mcpServers": {}}, indent=2) + "\n", encoding="utf-8")
 
@@ -149,6 +177,14 @@ def resolve_preset(presets_cfg: dict, raw_choice: str | None, interactive: bool)
     return name, presets[name]
 
 
+def write_preset_config(home_dir: Path, preset_name: str, preset_data: dict) -> None:
+    """Write active Context Guardian preset thresholds."""
+    preset_target = home_dir / ".gemini/config/hooks/preset.json"
+    preset_target.parent.mkdir(parents=True, exist_ok=True)
+    preset_payload = {"preset": preset_name, **preset_data["context_guardian"]}
+    preset_target.write_text(json.dumps(preset_payload, indent=2) + "\n", encoding="utf-8")
+
+
 def apply_settings_merge(
     repo_dir: Path,
     home_dir: Path,
@@ -156,6 +192,7 @@ def apply_settings_merge(
     with_hooks: bool,
     preset_name: str,
     preset_data: dict,
+    no_orchestrator: bool = False,
 ) -> None:
     """Safely merge preset Orchestrator settings, hooks, and plugin flags."""
     cli_example = json.loads(
@@ -165,29 +202,32 @@ def apply_settings_merge(
     cli_example["orchestrator"] = preset_data["orchestrator"]
 
     cli_target = home_dir / ".gemini/antigravity-cli/settings.json"
-    merge_keys = (
-        "model",
-        "orchestrator",
+    orchestrator_keys = ("model", "orchestrator")
+    preference_keys = (
         "agentMode",
         "artifactReviewPolicy",
         "colorScheme",
         "vimInsertFirst",
+        "showThinking",
     )
 
     if cli_target.exists():
         cli_data = json.loads(cli_target.read_text(encoding="utf-8"))
-        for key in merge_keys:
+        if not no_orchestrator:
+            for key in orchestrator_keys:
+                if key in cli_example:
+                    cli_data[key] = cli_example[key]
+        for key in preference_keys:
             if key in cli_example:
-                cli_data[key] = cli_example[key]
-        if "showThinking" in cli_example:
-            cli_data.setdefault("showThinking", cli_example["showThinking"])
+                cli_data.setdefault(key, cli_example[key])
     else:
-        cli_data = cli_example
+        cli_data = dict(cli_example)
+        if no_orchestrator:
+            for key in orchestrator_keys:
+                cli_data.pop(key, None)
     cli_target.write_text(json.dumps(cli_data, indent=2) + "\n", encoding="utf-8")
 
-    preset_target = home_dir / ".gemini/config/hooks/preset.json"
-    preset_payload = {"preset": preset_name, **preset_data["context_guardian"]}
-    preset_target.write_text(json.dumps(preset_payload, indent=2) + "\n", encoding="utf-8")
+    write_preset_config(home_dir, preset_name, preset_data)
 
     graphify_bin = find_graphify_binary(home_dir, local_bin)
     if graphify_bin or with_hooks:
@@ -199,14 +239,27 @@ def apply_settings_merge(
             settings_data = json.loads(settings_target.read_text(encoding="utf-8"))
         else:
             settings_data = {}
-        if "hooks" not in settings_data:
-            settings_data["hooks"] = hooks_example["hooks"]
+
+        before_tool = settings_data.setdefault("hooks", {}).setdefault("BeforeTool", [])
+        already_configured = any(
+            isinstance(hook.get("command"), str)
+            and "graphify" in hook["command"]
+            and "hook-guard" in hook["command"]
+            for entry in before_tool
+            if isinstance(entry, dict)
+            for hook in entry.get("hooks", [])
+            if isinstance(hook, dict)
+        )
+        if not already_configured:
+            example_entries = hooks_example.get("hooks", {}).get("BeforeTool", [])
             if graphify_bin:
-                for entry in settings_data["hooks"].get("BeforeTool", []):
+                quoted_bin = f'"{graphify_bin}"' if " " in graphify_bin else graphify_bin
+                for entry in example_entries:
                     for hook in entry.get("hooks", []):
                         cmd = hook.get("command")
                         if isinstance(cmd, str) and "graphify hook-guard" in cmd:
-                            hook["command"] = f"{graphify_bin} hook-guard gemini"
+                            hook["command"] = f"{quoted_bin} hook-guard gemini"
+            before_tool.extend(example_entries)
         settings_target.write_text(json.dumps(settings_data, indent=2) + "\n", encoding="utf-8")
 
     config_target = home_dir / ".gemini/config/config.json"
@@ -221,8 +274,6 @@ def apply_settings_merge(
     duplicates = [
         home_dir / ".gemini/skills/graphify",
         home_dir / ".gemini/skills/security-audit",
-        home_dir / ".agents/skills/find-skills",
-        home_dir / ".agents/skills/security-audit",
     ]
     for dup in duplicates:
         if dup.is_dir() and (canonical_skills / dup.name).is_dir():
@@ -236,7 +287,11 @@ def apply_settings_merge(
             pass
 
 
-def main() -> None:
+def install_setup(
+    argv: list[str] | None = None,
+    home_dir: Path | None = None,
+    repo_dir: Path | None = None,
+) -> None:
     parser = argparse.ArgumentParser(description="Install Antigravity token-optimized setup.")
     parser.add_argument(
         "--full",
@@ -261,21 +316,31 @@ def main() -> None:
         help="Interactively choose a preset profile (1-9: Argon, Neon, or Carbon series). Implies --full.",
     )
     parser.add_argument(
+        "--no-orchestrator",
+        action="store_true",
+        help="Keep existing model/orchestrator settings untouched while applying Context Guardian presets and hooks.",
+    )
+    parser.add_argument(
+        "--prune-skills",
+        action="store_true",
+        help="Remove non-core skills from ~/.gemini/config/skills/ (by default only DataCloud-injected skills are pruned).",
+    )
+    parser.add_argument(
         "--with-hooks",
         action="store_true",
         help="Install graphify BeforeTool hook even if graphify is not on PATH yet.",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     if args.preset is not None or args.choose:
         args.apply_settings = True
 
-    repo_dir = Path(__file__).resolve().parent
-    home_dir = Path.home()
-    gemini_dir = home_dir / ".gemini"
-    local_bin = home_dir / ".local/bin"
+    resolved_repo = repo_dir or Path(__file__).resolve().parent
+    resolved_home = home_dir or Path.home()
+    gemini_dir = resolved_home / ".gemini"
+    local_bin = resolved_home / ".local/bin"
 
-    presets_cfg = json.loads((repo_dir / "settings/presets.json").read_text(encoding="utf-8"))
+    presets_cfg = json.loads((resolved_repo / "settings/presets.json").read_text(encoding="utf-8"))
     preset_name, preset_data = resolve_preset(presets_cfg, args.preset, args.choose)
 
     for folder in (
@@ -288,30 +353,40 @@ def main() -> None:
     ):
         folder.mkdir(parents=True, exist_ok=True)
 
-    shutil.copy2(repo_dir / "rules/global-GEMINI.md", gemini_dir / "GEMINI.md")
-    shutil.copy2(repo_dir / "rules/workspace-GEMINI.md", home_dir / "GEMINI.md")
+    global_rule_src = resolved_repo / "rules/global-GEMINI.md"
+    global_rule_dst = gemini_dir / "GEMINI.md"
+    backup_if_different(global_rule_src, global_rule_dst)
+    shutil.copy2(global_rule_src, global_rule_dst)
 
-    copy_dir_contents(repo_dir / "core-skills", gemini_dir / "config/skills")
-    prune_non_core_skills(gemini_dir / "config/skills")
-    copy_dir_contents(repo_dir / "skill-library", gemini_dir / "skill-library")
+    workspace_rule_src = resolved_repo / "rules/workspace-GEMINI.md"
+    workspace_rule_dst = resolved_home / "GEMINI.md"
+    backup_if_different(workspace_rule_src, workspace_rule_dst)
+    shutil.copy2(workspace_rule_src, workspace_rule_dst)
+
+    copy_dir_contents(resolved_repo / "core-skills", gemini_dir / "config/skills")
+    prune_non_core_skills(gemini_dir / "config/skills", prune_all=args.prune_skills)
+    copy_dir_contents(resolved_repo / "skill-library", gemini_dir / "skill-library")
 
     hook_script = gemini_dir / "config/hooks/context-guardian.py"
-    shutil.copy2(repo_dir / "hooks/context-guardian.py", hook_script)
+    shutil.copy2(resolved_repo / "hooks/context-guardian.py", hook_script)
     if os.name != "nt":
         hook_script.chmod(0o755)
 
     hooks_json_target = gemini_dir / "config/hooks.json"
-    hooks_repo_data = json.loads((repo_dir / "hooks/hooks.json").read_text(encoding="utf-8"))
-    existing_hooks = (
-        json.loads(hooks_json_target.read_text(encoding="utf-8"))
+    hooks_repo_data = json.loads((resolved_repo / "hooks/hooks.json").read_text(encoding="utf-8"))
+    raw_hooks = (
+        hooks_json_target.read_text(encoding="utf-8").strip()
         if hooks_json_target.exists()
-        else {}
+        else ""
     )
+    existing_hooks = json.loads(raw_hooks) if raw_hooks else {}
     guardian_hook = hooks_repo_data["context-guardian"]
-    if os.name == "nt":
+    if os.name == "nt" or not shutil.which("python3"):
         guardian_hook["PreInvocation"][0]["command"] = f'"{sys.executable}" "{hook_script}"'
     existing_hooks["context-guardian"] = guardian_hook
     hooks_json_target.write_text(json.dumps(existing_hooks, indent=2) + "\n", encoding="utf-8")
+
+    write_preset_config(resolved_home, preset_name, preset_data)
 
     ensure_empty_mcp(gemini_dir / "config/mcp_config.json")
     ensure_empty_mcp(gemini_dir / "antigravity/mcp_config.json")
@@ -321,16 +396,27 @@ def main() -> None:
 
     if args.apply_settings:
         apply_settings_merge(
-            repo_dir, home_dir, local_bin, args.with_hooks, preset_name, preset_data
+            resolved_repo,
+            resolved_home,
+            local_bin,
+            args.with_hooks,
+            preset_name,
+            preset_data,
+            no_orchestrator=args.no_orchestrator,
         )
 
     subprocess.run([sys.executable, str(rebuild_script)], check=True)
 
     print(
         f"Antigravity setup installed successfully "
-        f"(apply_settings={args.apply_settings}, preset={preset_name})."
+        f"(apply_settings={args.apply_settings}, preset={preset_name}, "
+        f"no_orchestrator={args.no_orchestrator})."
     )
-    print(f"Templates remain available in: {repo_dir / 'settings'}")
+    print(f"Templates remain available in: {resolved_repo / 'settings'}")
+
+
+def main() -> None:
+    install_setup()
 
 
 if __name__ == "__main__":
